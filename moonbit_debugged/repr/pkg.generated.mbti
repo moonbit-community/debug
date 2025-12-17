@@ -1,0 +1,73 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "dii_user/moonbit_debugged/repr"
+
+// Values
+pub fn array(Array[Repr]) -> Repr
+
+pub fn assoc(String, Array[(Repr, Repr)]) -> Repr
+
+pub fn bool(Bool) -> Repr
+
+pub fn char(Char) -> Repr
+
+pub fn collection(String, Array[Repr]) -> Repr
+
+pub fn ctor(String, Array[Repr]) -> Repr
+
+pub fn double(Double) -> Repr
+
+pub fn int(Int) -> Repr
+
+pub fn opaque_(String) -> Repr
+
+pub fn opaque_child(String, Repr) -> Repr
+
+pub fn opaque_literal(String, String) -> Repr
+
+pub fn record(Array[(String, Repr)]) -> Repr
+
+pub fn string(String) -> Repr
+
+// Errors
+
+// Types and methods
+pub enum Repr {
+  IntLit(Int)
+  DoubleLit(Double)
+  BoolLit(Bool)
+  CharLit(Char)
+  StringLit(String)
+  Array(Array[Repr])
+  Record(Array[Repr])
+  Prop(String, Repr)
+  Ctor(String, Array[Repr])
+  Opaque(String, Array[Repr])
+  Literal(String)
+  Assoc(String, Array[Repr])
+  AssocProp(Repr, Repr)
+  Omitted
+}
+pub fn Repr::array(Array[Self]) -> Self
+pub fn Repr::assoc(String, Array[Self]) -> Self
+pub fn Repr::assoc_prop(Self, Self) -> Self
+pub fn Repr::bool_lit(Bool) -> Self
+pub fn Repr::char_lit(Char) -> Self
+pub fn Repr::children(Self) -> Array[Self]
+pub fn Repr::ctor(String, Array[Self]) -> Self
+pub fn Repr::double_lit(Double) -> Self
+pub fn Repr::int_lit(Int) -> Self
+pub fn Repr::literal(String) -> Self
+pub fn Repr::omitted() -> Self
+pub fn Repr::opaque_node(String, Array[Self]) -> Self
+pub fn Repr::prop(String, Self) -> Self
+pub fn Repr::record(Array[Self]) -> Self
+pub fn Repr::shallow(Self) -> Self
+pub fn Repr::string_lit(String) -> Self
+pub fn Repr::with_children(Self, Array[Self]) -> Self
+pub impl Compare for Repr
+pub impl Eq for Repr
+
+// Type aliases
+
+// Traits
+

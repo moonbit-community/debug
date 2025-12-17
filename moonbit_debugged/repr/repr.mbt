@@ -1,118 +1,99 @@
 ///|
 /// Direct structural representation for debugging/diffing/pretty-printing.
-pub enum DebugInfo {
+///
+/// `pub` makes it readonly outside this package: it can be pattern-matched but
+/// not directly constructed. Use the smart constructors below.
+pub enum Repr {
   IntLit(Int)
   DoubleLit(Double)
   BoolLit(Bool)
   CharLit(Char)
   StringLit(String)
-  Array(Array[DebugInfo])
-  Record(Array[DebugInfo])
-  Prop(String, DebugInfo)
-  Ctor(String, Array[DebugInfo])
-  Opaque(String, Array[DebugInfo])
+  Array(Array[Repr])
+  Record(Array[Repr])
+  Prop(String, Repr)
+  Ctor(String, Array[Repr])
+  Opaque(String, Array[Repr])
   Literal(String)
-  Assoc(String, Array[DebugInfo])
-  AssocProp(DebugInfo, DebugInfo)
+  Assoc(String, Array[Repr])
+  AssocProp(Repr, Repr)
   Omitted
 } derive(Eq, Compare)
 
 ///|
-/// Structural representation for debugging/diffing.
-pub struct Repr(DebugInfo) derive(Eq, Compare)
-
-///|
-/// Extract the underlying structure from a `Repr`.
-pub fn Repr::info(self : Repr) -> DebugInfo {
-  self.0
-}
-
-///|
-/// Construct a `Repr` from a raw `DebugInfo`.
-pub fn Repr::from_info(info : DebugInfo) -> Repr {
-  Repr(info)
-}
-
-///|
-/// Smart constructors for `DebugInfo` (constructible outside the package).
-pub fn DebugInfo::int_lit(x : Int) -> DebugInfo {
+/// Smart constructors for `Repr` (constructible outside the package).
+pub fn Repr::int_lit(x : Int) -> Repr {
   IntLit(x)
 }
 
 ///|
-pub fn DebugInfo::double_lit(x : Double) -> DebugInfo {
+pub fn Repr::double_lit(x : Double) -> Repr {
   DoubleLit(x)
 }
 
 ///|
-pub fn DebugInfo::bool_lit(x : Bool) -> DebugInfo {
+pub fn Repr::bool_lit(x : Bool) -> Repr {
   BoolLit(x)
 }
 
 ///|
-pub fn DebugInfo::char_lit(x : Char) -> DebugInfo {
+pub fn Repr::char_lit(x : Char) -> Repr {
   CharLit(x)
 }
 
 ///|
-pub fn DebugInfo::string_lit(x : String) -> DebugInfo {
+pub fn Repr::string_lit(x : String) -> Repr {
   StringLit(x)
 }
 
 ///|
-pub fn DebugInfo::array(children : Array[DebugInfo]) -> DebugInfo {
+pub fn Repr::array(children : Array[Repr]) -> Repr {
   Array(children)
 }
 
 ///|
-pub fn DebugInfo::record(children : Array[DebugInfo]) -> DebugInfo {
+pub fn Repr::record(children : Array[Repr]) -> Repr {
   Record(children)
 }
 
 ///|
-pub fn DebugInfo::prop(name : String, value : DebugInfo) -> DebugInfo {
+pub fn Repr::prop(name : String, value : Repr) -> Repr {
   Prop(name, value)
 }
 
 ///|
-pub fn DebugInfo::ctor(name : String, args : Array[DebugInfo]) -> DebugInfo {
+pub fn Repr::ctor(name : String, args : Array[Repr]) -> Repr {
   Ctor(name, args)
 }
 
 ///|
-pub fn DebugInfo::opaque_node(
-  name : String,
-  children : Array[DebugInfo],
-) -> DebugInfo {
+pub fn Repr::opaque_node(name : String, children : Array[Repr]) -> Repr {
   Opaque(name, children)
 }
 
 ///|
-pub fn DebugInfo::literal(value : String) -> DebugInfo {
+pub fn Repr::literal(value : String) -> Repr {
   Literal(value)
 }
 
 ///|
-pub fn DebugInfo::assoc(
-  name : String,
-  children : Array[DebugInfo],
-) -> DebugInfo {
+pub fn Repr::assoc(name : String, children : Array[Repr]) -> Repr {
   Assoc(name, children)
 }
 
 ///|
-pub fn DebugInfo::assoc_prop(key : DebugInfo, value : DebugInfo) -> DebugInfo {
+pub fn Repr::assoc_prop(key : Repr, value : Repr) -> Repr {
   AssocProp(key, value)
 }
 
 ///|
-pub fn DebugInfo::omitted() -> DebugInfo {
+pub fn Repr::omitted() -> Repr {
   Omitted
 }
 
 ///|
-/// Child nodes of a `DebugInfo` node.
-pub fn DebugInfo::children(self : DebugInfo) -> Array[DebugInfo] {
+/// Child nodes of a `Repr` node.
+pub fn Repr::children(self : Repr) -> Array[Repr] {
   match self {
     IntLit(_)
     | DoubleLit(_)
@@ -128,11 +109,8 @@ pub fn DebugInfo::children(self : DebugInfo) -> Array[DebugInfo] {
 }
 
 ///|
-/// Rebuild a `DebugInfo` node with a new child list (payload is preserved).
-pub fn DebugInfo::with_children(
-  self : DebugInfo,
-  children : Array[DebugInfo],
-) -> DebugInfo {
+/// Rebuild a `Repr` node with a new child list (payload is preserved).
+pub fn Repr::with_children(self : Repr, children : Array[Repr]) -> Repr {
   match self {
     IntLit(_)
     | DoubleLit(_)
@@ -161,7 +139,7 @@ pub fn DebugInfo::with_children(
 
 ///|
 /// A shallow copy of `self` containing only its “label” (children replaced).
-pub fn DebugInfo::shallow(self : DebugInfo) -> DebugInfo {
+pub fn Repr::shallow(self : Repr) -> Repr {
   match self {
     IntLit(_)
     | DoubleLit(_)
@@ -183,76 +161,76 @@ pub fn DebugInfo::shallow(self : DebugInfo) -> DebugInfo {
 ///|
 /// Construct an integer `Repr`.
 pub fn int(x : Int) -> Repr {
-  Repr::from_info(DebugInfo::int_lit(x))
+  Repr::int_lit(x)
 }
 
 ///|
 /// Construct a double `Repr`.
 pub fn double(x : Double) -> Repr {
-  Repr::from_info(DebugInfo::double_lit(x))
+  Repr::double_lit(x)
 }
 
 ///|
 /// Construct a boolean `Repr`.
 pub fn bool(x : Bool) -> Repr {
-  Repr::from_info(DebugInfo::bool_lit(x))
+  Repr::bool_lit(x)
 }
 
 ///|
 /// Construct a char `Repr`.
 pub fn char(x : Char) -> Repr {
-  Repr::from_info(DebugInfo::char_lit(x))
+  Repr::char_lit(x)
 }
 
 ///|
 /// Construct a string `Repr`.
 pub fn string(x : String) -> Repr {
-  Repr::from_info(DebugInfo::string_lit(x))
+  Repr::string_lit(x)
 }
 
 ///|
 /// Construct an array `Repr` from pre-built child `Repr`s.
 pub fn array(xs : Array[Repr]) -> Repr {
-  Repr::from_info(DebugInfo::array(xs.map(fn(r) { Repr::info(r) })))
+  Repr::array(xs)
 }
 
 ///|
 /// Convert record field pairs into property nodes.
-fn make_props(fields : Array[(String, Repr)]) -> Array[DebugInfo] {
+fn make_props(fields : Array[(String, Repr)]) -> Array[Repr] {
   fields.map(fn(field) {
     let (name, value) = field
-    DebugInfo::prop(name, Repr::info(value))
+    Repr::prop(name, value)
   })
 }
 
 ///|
 /// Construct a record `Repr` from field name/value pairs.
 pub fn record(fields : Array[(String, Repr)]) -> Repr {
-  Repr::from_info(DebugInfo::record(make_props(fields)))
+  Repr::record(make_props(fields))
 }
 
 ///|
 /// Construct a constructor/application `Repr` with a name and argument list.
 pub fn ctor(name : String, args : Array[Repr]) -> Repr {
-  Repr::from_info(DebugInfo::ctor(name, args.map(fn(r) { Repr::info(r) })))
+  Repr::ctor(name, args)
 }
 
 ///|
 /// Construct an opaque wrapper `Repr` with a single child.
 pub fn opaque_child(name : String, child : Repr) -> Repr {
-  Repr::from_info(DebugInfo::opaque_node(name, [Repr::info(child)]))
+  Repr::opaque_node(name, [child])
 }
 
 ///|
 /// Construct an opaque wrapper `Repr` with no children.
 pub fn opaque_(name : String) -> Repr {
-  Repr::from_info(DebugInfo::opaque_node(name, []))
+  Repr::opaque_node(name, [])
 }
 
 ///|
 /// Construct an opaque wrapper `Repr` containing a literal leaf (already formatted).
 pub fn opaque_literal(name : String, value : String) -> Repr {
-  Repr::from_info(DebugInfo::opaque_node(name, [DebugInfo::literal(value)]))
+  Repr::opaque_node(name, [Repr::literal(value)])
 }
 
 ///|
@@ -264,13 +242,11 @@ pub fn collection(name : String, contents : Array[Repr]) -> Repr {
 ///|
 /// Construct an association/kv `Repr` from key/value `Repr` pairs.
 pub fn assoc(name : String, contents : Array[(Repr, Repr)]) -> Repr {
-  Repr::from_info(
-    DebugInfo::assoc(
-      name,
-      contents.map(fn(pair) {
-        let (k, v) = pair
-        DebugInfo::assoc_prop(Repr::info(k), Repr::info(v))
-      }),
-    ),
+  Repr::assoc(
+    name,
+    contents.map(fn(pair) {
+      let (k, v) = pair
+      Repr::assoc_prop(k, v)
+    }),
   )
 }

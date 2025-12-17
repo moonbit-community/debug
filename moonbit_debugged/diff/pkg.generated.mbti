@@ -16,10 +16,10 @@ pub fn diff_repr_with(DiffOptions, @repr.Repr, @repr.Repr) -> ReprDelta
 
 // Types and methods
 pub(all) enum DebugDelta {
-  Same(@repr.DebugInfo, Array[DebugDelta])
-  Different(@repr.DebugInfo, @repr.DebugInfo)
-  Extra1(@repr.DebugInfo)
-  Extra2(@repr.DebugInfo)
+  Same(@repr.Repr, Array[DebugDelta])
+  Different(@repr.Repr, @repr.Repr)
+  Extra1(@repr.Repr)
+  Extra2(@repr.Repr)
 }
 pub impl Compare for DebugDelta
 pub impl Eq for DebugDelta

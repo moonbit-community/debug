@@ -1,10 +1,10 @@
 ///|
-/// Tree-shaped diff between two `DebugInfo` values.
+/// Tree-shaped diff between two `Repr` values.
 pub(all) enum DebugDelta {
-  Same(@repr.DebugInfo, Array[DebugDelta])
-  Different(@repr.DebugInfo, @repr.DebugInfo)
-  Extra1(@repr.DebugInfo)
-  Extra2(@repr.DebugInfo)
+  Same(@repr.Repr, Array[DebugDelta])
+  Different(@repr.Repr, @repr.Repr)
+  Extra1(@repr.Repr)
+  Extra2(@repr.Repr)
 } derive(Eq, Compare)
 
 ///|
@@ -74,50 +74,50 @@ fn relative_error(x : Double, y : Double) -> Double {
 /// Compare two node “labels”, with float tolerance for `DoubleLit`.
 fn info_approx_eq(
   max_relative_error : Double,
-  x : @repr.DebugInfo,
-  y : @repr.DebugInfo,
+  x : @repr.Repr,
+  y : @repr.Repr,
 ) -> Bool {
   match (x, y) {
-    (@repr.DebugInfo::DoubleLit(x1), @repr.DebugInfo::DoubleLit(y1)) =>
+    (@repr.Repr::DoubleLit(x1), @repr.Repr::DoubleLit(y1)) =>
       relative_error(x1, y1) <= max_relative_error
-    (@repr.DebugInfo::IntLit(x1), @repr.DebugInfo::IntLit(y1)) => x1 == y1
-    (@repr.DebugInfo::BoolLit(x1), @repr.DebugInfo::BoolLit(y1)) => x1 == y1
-    (@repr.DebugInfo::CharLit(x1), @repr.DebugInfo::CharLit(y1)) => x1 == y1
-    (@repr.DebugInfo::StringLit(x1), @repr.DebugInfo::StringLit(y1)) => x1 == y1
-    (@repr.DebugInfo::Literal(x1), @repr.DebugInfo::Literal(y1)) => x1 == y1
-    (@repr.DebugInfo::Omitted, @repr.DebugInfo::Omitted) => true
-    (@repr.DebugInfo::Array(_), @repr.DebugInfo::Array(_)) => true
-    (@repr.DebugInfo::Record(_), @repr.DebugInfo::Record(_)) => true
-    (@repr.DebugInfo::Prop(n1, _), @repr.DebugInfo::Prop(n2, _)) => n1 == n2
-    (@repr.DebugInfo::Ctor(n1, _), @repr.DebugInfo::Ctor(n2, _)) => n1 == n2
-    (@repr.DebugInfo::Opaque(n1, _), @repr.DebugInfo::Opaque(n2, _)) => n1 == n2
-    (@repr.DebugInfo::Assoc(n1, _), @repr.DebugInfo::Assoc(n2, _)) => n1 == n2
-    (@repr.DebugInfo::AssocProp(_, _), @repr.DebugInfo::AssocProp(_, _)) => true
+    (@repr.Repr::IntLit(x1), @repr.Repr::IntLit(y1)) => x1 == y1
+    (@repr.Repr::BoolLit(x1), @repr.Repr::BoolLit(y1)) => x1 == y1
+    (@repr.Repr::CharLit(x1), @repr.Repr::CharLit(y1)) => x1 == y1
+    (@repr.Repr::StringLit(x1), @repr.Repr::StringLit(y1)) => x1 == y1
+    (@repr.Repr::Literal(x1), @repr.Repr::Literal(y1)) => x1 == y1
+    (@repr.Repr::Omitted, @repr.Repr::Omitted) => true
+    (@repr.Repr::Array(_), @repr.Repr::Array(_)) => true
+    (@repr.Repr::Record(_), @repr.Repr::Record(_)) => true
+    (@repr.Repr::Prop(n1, _), @repr.Repr::Prop(n2, _)) => n1 == n2
+    (@repr.Repr::Ctor(n1, _), @repr.Repr::Ctor(n2, _)) => n1 == n2
+    (@repr.Repr::Opaque(n1, _), @repr.Repr::Opaque(n2, _)) => n1 == n2
+    (@repr.Repr::Assoc(n1, _), @repr.Repr::Assoc(n2, _)) => n1 == n2
+    (@repr.Repr::AssocProp(_, _), @repr.Repr::AssocProp(_, _)) => true
     _ => false
   }
 }
 
 ///|
 /// Labels that are treated as structural “containers” (may be collapsed in diffs).
-fn info_is_unimportant(info : @repr.DebugInfo) -> Bool {
+fn info_is_unimportant(info : @repr.Repr) -> Bool {
   match info {
-    @repr.DebugInfo::AssocProp(_, _)
-    | @repr.DebugInfo::Array(_)
-    | @repr.DebugInfo::Record(_) => true
+    @repr.Repr::AssocProp(_, _)
+    | @repr.Repr::Array(_)
+    | @repr.Repr::Record(_) => true
     _ => false
   }
 }
 
 ///|
-/// Child nodes of a `DebugInfo` node.
-fn info_children(info : @repr.DebugInfo) -> Array[@repr.DebugInfo] {
-  @repr.DebugInfo::children(info)
+/// Child nodes of a `Repr` node.
+fn info_children(info : @repr.Repr) -> Array[@repr.Repr] {
+  @repr.Repr::children(info)
 }
 
 ///|
 /// A shallow copy of `info` containing only its “label” (children replaced).
-fn info_shallow(info : @repr.DebugInfo) -> @repr.DebugInfo {
-  @repr.DebugInfo::shallow(info)
+fn info_shallow(info : @repr.Repr) -> @repr.Repr {
+  @repr.Repr::shallow(info)
 }
 
 ///|
@@ -134,10 +134,10 @@ fn[T] tree_all(xs : Array[T], p : (T) -> Bool) -> Bool {
 }
 
 ///|
-/// Core `DebugInfo` diff: returns a `DebugDelta` describing differences.
+/// Core `Repr` diff: returns a `DebugDelta` describing differences.
 fn diff_info_with(
-  left : @repr.DebugInfo,
-  right : @repr.DebugInfo,
+  left : @repr.Repr,
+  right : @repr.Repr,
   max_relative_error~ : Double,
 ) -> DebugDelta {
   fn differing(d : DebugDelta) -> Bool {
@@ -147,10 +147,7 @@ fn diff_info_with(
     }
   }
 
-  fn go(
-    left_node : @repr.DebugInfo,
-    right_node : @repr.DebugInfo,
-  ) -> DebugDelta {
+  fn go(left_node : @repr.Repr, right_node : @repr.Repr) -> DebugDelta {
     if info_approx_eq(max_relative_error, left_node, right_node) {
       let xs = info_children(left_node)
       let ys = info_children(right_node)
@@ -192,11 +189,7 @@ pub fn diff_repr_with(
   y : @repr.Repr,
 ) -> ReprDelta {
   ReprDelta::from_delta(
-    diff_info_with(
-      @repr.Repr::info(x),
-      @repr.Repr::info(y),
-      max_relative_error=opts.max_relative_error,
-    ),
+    diff_info_with(x, y, max_relative_error=opts.max_relative_error),
   )
 }
 

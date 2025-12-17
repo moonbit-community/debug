@@ -16,42 +16,42 @@ pub let default_pretty_print_options : PrettyPrintOptions = {
 
 ///|
 /// Whether visiting this node should decrement the remaining depth budget.
-fn info_adds_depth(info : @repr.DebugInfo) -> Bool {
+fn info_adds_depth(info : @repr.Repr) -> Bool {
   match info {
-    @repr.DebugInfo::Prop(_, _) | @repr.DebugInfo::AssocProp(_, _) => false
+    @repr.Repr::Prop(_, _) | @repr.Repr::AssocProp(_, _) => false
     _ => true
   }
 }
 
 ///|
-/// Child nodes of a `DebugInfo` node.
-fn info_children(info : @repr.DebugInfo) -> Array[@repr.DebugInfo] {
-  @repr.DebugInfo::children(info)
+/// Child nodes of a `Repr` node.
+fn info_children(info : @repr.Repr) -> Array[@repr.Repr] {
+  @repr.Repr::children(info)
 }
 
 ///|
-/// Rebuild a `DebugInfo` node with a new child list (payload is preserved).
+/// Rebuild a `Repr` node with a new child list (payload is preserved).
 fn info_with_children(
-  info : @repr.DebugInfo,
-  children : Array[@repr.DebugInfo],
-) -> @repr.DebugInfo {
-  @repr.DebugInfo::with_children(info, children)
+  info : @repr.Repr,
+  children : Array[@repr.Repr],
+) -> @repr.Repr {
+  @repr.Repr::with_children(info, children)
 }
 
 ///|
 /// A shallow copy of `info` containing only its “label” (children replaced).
-fn info_shallow(info : @repr.DebugInfo) -> @repr.DebugInfo {
-  @repr.DebugInfo::shallow(info)
+fn info_shallow(info : @repr.Repr) -> @repr.Repr {
+  @repr.Repr::shallow(info)
 }
 
 ///|
-/// Prune a `DebugInfo` value to a given depth (replacing pruned subtrees).
+/// Prune a `Repr` value to a given depth (replacing pruned subtrees).
 fn prune_info(
-  info : @repr.DebugInfo,
-  replacement~ : @repr.DebugInfo,
-  counts~ : (@repr.DebugInfo) -> Bool,
+  info : @repr.Repr,
+  replacement~ : @repr.Repr,
+  counts~ : (@repr.Repr) -> Bool,
   depth~ : Int,
-) -> @repr.DebugInfo {
+) -> @repr.Repr {
   fn int_max(x : Int, y : Int) -> Int {
     if x > y {
       x
@@ -60,7 +60,7 @@ fn prune_info(
     }
   }
 
-  fn go(d : Int, node : @repr.DebugInfo) -> @repr.DebugInfo {
+  fn go(d : Int, node : @repr.Repr) -> @repr.Repr {
     let children = info_children(node)
     if d <= 0 {
       if children.is_empty() {
@@ -84,16 +84,13 @@ fn prune_info(
 
 ///|
 /// Prune a `Repr` using `opts.max_depth` (replacing with `Omitted`).
-fn prune_repr_info(
-  opts : PrettyPrintOptions,
-  info : @repr.DebugInfo,
-) -> @repr.DebugInfo {
+fn prune_repr_info(opts : PrettyPrintOptions, info : @repr.Repr) -> @repr.Repr {
   match opts.max_depth {
     None => info
     Some(depth) =>
       prune_info(
         info,
-        replacement=@repr.DebugInfo::omitted(),
+        replacement=@repr.Repr::omitted(),
         counts=info_adds_depth,
         depth~,
       )
@@ -121,7 +118,7 @@ fn prune_delta(
           if children.is_empty() {
             node
           } else {
-            @diff.DebugDelta::Same(@repr.DebugInfo::omitted(), [])
+            @diff.DebugDelta::Same(@repr.Repr::omitted(), [])
           }
         } else {
           let next_depth = if info_adds_depth(label) { d - 1 } else { d }
@@ -132,18 +129,18 @@ fn prune_delta(
         }
       @diff.DebugDelta::Different(left, right) =>
         if d <= 0 {
-          @diff.DebugDelta::Same(@repr.DebugInfo::omitted(), [])
+          @diff.DebugDelta::Same(@repr.Repr::omitted(), [])
         } else {
           @diff.DebugDelta::Different(
             prune_info(
               left,
-              replacement=@repr.DebugInfo::omitted(),
+              replacement=@repr.Repr::omitted(),
               counts=info_adds_depth,
               depth=d,
             ),
             prune_info(
               right,
-              replacement=@repr.DebugInfo::omitted(),
+              replacement=@repr.Repr::omitted(),
               counts=info_adds_depth,
               depth=d,
             ),
@@ -151,12 +148,12 @@ fn prune_delta(
         }
       @diff.DebugDelta::Extra1(x) =>
         if d <= 0 {
-          @diff.DebugDelta::Same(@repr.DebugInfo::omitted(), [])
+          @diff.DebugDelta::Same(@repr.Repr::omitted(), [])
         } else {
           @diff.DebugDelta::Extra1(
             prune_info(
               x,
-              replacement=@repr.DebugInfo::omitted(),
+              replacement=@repr.Repr::omitted(),
               counts=info_adds_depth,
               depth=d,
             ),
@@ -164,12 +161,12 @@ fn prune_delta(
         }
       @diff.DebugDelta::Extra2(x) =>
         if d <= 0 {
-          @diff.DebugDelta::Same(@repr.DebugInfo::omitted(), [])
+          @diff.DebugDelta::Same(@repr.Repr::omitted(), [])
         } else {
           @diff.DebugDelta::Extra2(
             prune_info(
               x,
-              replacement=@repr.DebugInfo::omitted(),
+              replacement=@repr.Repr::omitted(),
               counts=info_adds_depth,
               depth=d,
             ),
@@ -186,22 +183,22 @@ fn prune_delta(
 
 ///|
 /// Heuristic “size” of a node for compact-vs-multiline decisions.
-fn info_size(info : @repr.DebugInfo) -> Int {
+fn info_size(info : @repr.Repr) -> Int {
   match info {
-    @repr.DebugInfo::IntLit(_) => 1
-    @repr.DebugInfo::DoubleLit(_) => 1
-    @repr.DebugInfo::BoolLit(_) => 1
-    @repr.DebugInfo::CharLit(_) => 1
-    @repr.DebugInfo::StringLit(s) => if s.length() <= 15 { 1 } else { 2 }
-    @repr.DebugInfo::Array(_) => 1
-    @repr.DebugInfo::Record(_) => 2
-    @repr.DebugInfo::Prop(name, _) => if name.length() <= 15 { 0 } else { 1 }
-    @repr.DebugInfo::Ctor(name, _) => if name.length() <= 15 { 1 } else { 2 }
-    @repr.DebugInfo::Opaque(name, _) => if name.length() <= 15 { 1 } else { 2 }
-    @repr.DebugInfo::Literal(s) => if s.length() <= 15 { 1 } else { 2 }
-    @repr.DebugInfo::Assoc(_, _) => 2
-    @repr.DebugInfo::AssocProp(_, _) => 0
-    @repr.DebugInfo::Omitted => 0
+    @repr.Repr::IntLit(_) => 1
+    @repr.Repr::DoubleLit(_) => 1
+    @repr.Repr::BoolLit(_) => 1
+    @repr.Repr::CharLit(_) => 1
+    @repr.Repr::StringLit(s) => if s.length() <= 15 { 1 } else { 2 }
+    @repr.Repr::Array(_) => 1
+    @repr.Repr::Record(_) => 2
+    @repr.Repr::Prop(name, _) => if name.length() <= 15 { 0 } else { 1 }
+    @repr.Repr::Ctor(name, _) => if name.length() <= 15 { 1 } else { 2 }
+    @repr.Repr::Opaque(name, _) => if name.length() <= 15 { 1 } else { 2 }
+    @repr.Repr::Literal(s) => if s.length() <= 15 { 1 } else { 2 }
+    @repr.Repr::Assoc(_, _) => 2
+    @repr.Repr::AssocProp(_, _) => 0
+    @repr.Repr::Omitted => 0
   }
 }
 
@@ -301,22 +298,21 @@ fn pretty_print_label(name : String) -> String {
 }
 
 ///|
-/// Render a single `DebugInfo` node (label + rendered children) into `Content`.
+/// Render a single `Repr` node (label + rendered children) into `Content`.
 fn pretty_print_repr_go(
-  label : @repr.DebugInfo,
+  label : @repr.Repr,
   children : Array[Content],
 ) -> Content {
   match label {
-    @repr.DebugInfo::IntLit(x) => leaf(x, needs_parens=x < 0)
-    @repr.DebugInfo::DoubleLit(x) => {
+    @repr.Repr::IntLit(x) => leaf(x, needs_parens=x < 0)
+    @repr.Repr::DoubleLit(x) => {
       let needs_parens = 1.0 / x < 0.0
       leaf(x, needs_parens~)
     }
-    @repr.DebugInfo::BoolLit(x) => leaf(x)
-    @repr.DebugInfo::CharLit(x) => leaf(x)
-    @repr.DebugInfo::StringLit(x) =>
-      no_parens(verbatim(quote_string_literal(x)))
-    @repr.DebugInfo::Ctor(name, _) => {
+    @repr.Repr::BoolLit(x) => leaf(x)
+    @repr.Repr::CharLit(x) => leaf(x)
+    @repr.Repr::StringLit(x) => no_parens(verbatim(quote_string_literal(x)))
+    @repr.Repr::Ctor(name, _) => {
       let rendered_children = children.map(wrap).map(fn(c) { indent("  ", c) })
       let content = verbatim(name) +
         rendered_children.fold(init={ size: 0, lines: [] }, fn(acc, c) {
@@ -328,9 +324,9 @@ fn pretty_print_repr_go(
         no_parens(content)
       }
     }
-    @repr.DebugInfo::Array(_) => comma_seq("[ ", " ]", children.map(no_wrap))
-    @repr.DebugInfo::Record(_) => comma_seq("{ ", " }", children.map(no_wrap))
-    @repr.DebugInfo::Opaque(name, _) =>
+    @repr.Repr::Array(_) => comma_seq("[ ", " ]", children.map(no_wrap))
+    @repr.Repr::Record(_) => comma_seq("{ ", " }", children.map(no_wrap))
+    @repr.Repr::Opaque(name, _) =>
       if children.is_empty() {
         no_parens(surround("<", ">", verbatim(name)))
       } else {
@@ -338,8 +334,8 @@ fn pretty_print_repr_go(
           indent("  ", no_wrap(comma_seq("", "", children.map(no_wrap))))
         no_parens(surround("<", ">", body))
       }
-    @repr.DebugInfo::Literal(str) => no_parens(verbatim(str))
-    @repr.DebugInfo::Assoc(name, _) =>
+    @repr.Repr::Literal(str) => no_parens(verbatim(str))
+    @repr.Repr::Assoc(name, _) =>
       no_parens(
         surround(
           "<",
@@ -348,12 +344,12 @@ fn pretty_print_repr_go(
           no_wrap(comma_seq("{ ", " }", children.map(no_wrap))),
         ),
       )
-    @repr.DebugInfo::AssocProp(_, _) =>
+    @repr.Repr::AssocProp(_, _) =>
       match children {
         [key, val] => no_parens(surround("", ":", no_wrap(key)) + no_wrap(val))
         _ => empty_content()
       }
-    @repr.DebugInfo::Prop(name, _) =>
+    @repr.Repr::Prop(name, _) =>
       match children {
         [val] =>
           no_parens(
@@ -362,7 +358,7 @@ fn pretty_print_repr_go(
           )
         _ => empty_content()
       }
-    @repr.DebugInfo::Omitted => parens(verbatim("..."))
+    @repr.Repr::Omitted => parens(verbatim("..."))
   }
 }
 
@@ -405,8 +401,8 @@ fn mark_removed(opts : PrettyPrintOptions, x : ContentParens) -> ContentParens {
 }
 
 ///|
-/// Render a `DebugInfo` as `Content` with resizing decisions.
-fn render_repr(opts : PrettyPrintOptions, info : @repr.DebugInfo) -> Content {
+/// Render a `Repr` as `Content` with resizing decisions.
+fn render_repr(opts : PrettyPrintOptions, info : @repr.Repr) -> Content {
   let label = info_shallow(info)
   let children = info_children(info).map(fn(child) { render_repr(opts, child) })
   with_resizing(
@@ -488,7 +484,7 @@ pub fn pretty_print_repr_with(
   opts : PrettyPrintOptions,
   r : @repr.Repr,
 ) -> String {
-  let info = prune_repr_info(opts, @repr.Repr::info(r))
+  let info = prune_repr_info(opts, r)
   print_content(no_wrap(render_repr(opts, info)))
 }
 
