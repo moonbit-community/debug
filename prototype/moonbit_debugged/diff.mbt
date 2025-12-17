@@ -1,4 +1,5 @@
 ///|
+/// Per-node diff markers for `Repr` trees.
 enum Delta[T] {
   Same(T)
   Different
@@ -8,24 +9,29 @@ enum Delta[T] {
 } derive(Eq, Compare)
 
 ///|
+/// A tree-shaped diff of two `Repr` values.
 pub struct ReprDelta(Tree[Delta[Label]]) derive(Eq, Compare)
 
 ///|
+/// Extract the underlying tree from a `ReprDelta`.
 fn un_repr_delta(d : ReprDelta) -> Tree[Delta[Label]] {
   d.0
 }
 
 ///|
+/// Options for diffing, including float tolerance for `Double`.
 pub(all) struct DiffOptions {
   max_relative_error : Double
 } derive(Show, Eq)
 
 ///|
+/// Default diff options used by `diff_repr`.
 pub let default_diff_options : DiffOptions = {
   max_relative_error: 0.000000000001,
 }
 
 ///|
+/// Absolute value for `Double`.
 fn double_abs(x : Double) -> Double {
   if x < 0.0 {
     -x
@@ -35,6 +41,7 @@ fn double_abs(x : Double) -> Double {
 }
 
 ///|
+/// Maximum of two `Double` values.
 fn double_max(x : Double, y : Double) -> Double {
   if x > y {
     x
@@ -44,6 +51,7 @@ fn double_max(x : Double, y : Double) -> Double {
 }
 
 ///|
+/// Relative error metric used for approximate float comparisons.
 fn relative_error(x : Double, y : Double) -> Double {
   if x == y {
     0.0
@@ -58,6 +66,7 @@ fn relative_error(x : Double, y : Double) -> Double {
 }
 
 ///|
+/// Compare two labels with float tolerance when they are `LDouble`.
 fn label_approx_eq(max_relative_error : Double, x : Label, y : Label) -> Bool {
   match (x, y) {
     (LDouble(x1), LDouble(y1)) => relative_error(x1, y1) <= max_relative_error
@@ -66,6 +75,7 @@ fn label_approx_eq(max_relative_error : Double, x : Label, y : Label) -> Bool {
 }
 
 ///|
+/// Labels that are treated as structural “containers” (may be collapsed in diffs).
 fn label_is_unimportant(label : Label) -> Bool {
   match label {
     LAssocProp | LArray | LRecord => true
@@ -74,6 +84,7 @@ fn label_is_unimportant(label : Label) -> Bool {
 }
 
 ///|
+/// Returns `true` iff `p` holds for every element.
 fn[T] tree_all(xs : Array[T], p : (T) -> Bool) -> Bool {
   let mut ok = true
   for x in xs {
@@ -86,6 +97,7 @@ fn[T] tree_all(xs : Array[T], p : (T) -> Bool) -> Bool {
 }
 
 ///|
+/// Core tree diff: returns a `Tree[Delta[Label]]` describing differences.
 fn diff_tree_with(
   left : Tree[Label],
   right : Tree[Label],
@@ -149,6 +161,7 @@ fn diff_tree_with(
 }
 
 ///|
+/// Diff two `Repr` values using explicit `DiffOptions`.
 pub fn diff_repr_with(opts : DiffOptions, x : Repr, y : Repr) -> ReprDelta {
   ReprDelta(
     diff_tree_with(
@@ -160,6 +173,7 @@ pub fn diff_repr_with(opts : DiffOptions, x : Repr, y : Repr) -> ReprDelta {
 }
 
 ///|
+/// Diff two `Repr` values using `default_diff_options`.
 pub fn diff_repr(x : Repr, y : Repr) -> ReprDelta {
   diff_repr_with(default_diff_options, x, y)
 }

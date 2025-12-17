@@ -1,9 +1,11 @@
 ///|
+/// A simple rose tree used as the backing structure for `Repr` and diffs.
 enum Tree[T] {
   Node(T, Array[Tree[T]])
 } derive(Eq, Compare)
 
 ///|
+/// Map a function over every label in the tree.
 fn[A, B] tree_map(tree : Tree[A], f : (A) -> B) -> Tree[B] {
   match tree {
     Node(label, children) =>
@@ -12,6 +14,7 @@ fn[A, B] tree_map(tree : Tree[A], f : (A) -> B) -> Tree[B] {
 }
 
 ///|
+/// Fold a tree bottom-up, receiving each node label and folded children.
 fn[A, B] fold_tree(tree : Tree[A], f : (A, Array[B]) -> B) -> B {
   match tree {
     Node(label, children) =>
@@ -20,6 +23,7 @@ fn[A, B] fold_tree(tree : Tree[A], f : (A, Array[B]) -> B) -> B {
 }
 
 ///|
+/// Prune a tree to `depth`, replacing pruned subtrees with `replacement`.
 fn[A] prune_tree(
   tree : Tree[A],
   replacement~ : A,

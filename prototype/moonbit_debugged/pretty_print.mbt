@@ -1,4 +1,5 @@
 ///|
+/// Options controlling pruning/formatting and ANSI markers.
 pub(all) struct PrettyPrintOptions {
   max_depth : Int?
   compact_threshold : Int
@@ -6,6 +7,7 @@ pub(all) struct PrettyPrintOptions {
 } derive(Show, Eq)
 
 ///|
+/// Default pretty-print options used by `pretty_print_repr` / `pretty_print_delta`.
 pub let default_pretty_print_options : PrettyPrintOptions = {
   max_depth: Some(4),
   compact_threshold: 8,
@@ -13,6 +15,7 @@ pub let default_pretty_print_options : PrettyPrintOptions = {
 }
 
 ///|
+/// Whether visiting this label should decrement the remaining depth budget.
 fn label_adds_depth(label : Label) -> Bool {
   match label {
     LProp(_) | LAssocProp => false
@@ -21,6 +24,7 @@ fn label_adds_depth(label : Label) -> Bool {
 }
 
 ///|
+/// Whether visiting this delta should decrement the remaining depth budget.
 fn delta_adds_depth(delta : Delta[Label]) -> Bool {
   match delta {
     Same(label) | Subtree(label) => label_adds_depth(label)
@@ -29,6 +33,7 @@ fn delta_adds_depth(delta : Delta[Label]) -> Bool {
 }
 
 ///|
+/// Prune a `Repr` tree using `opts.max_depth` (replacing with `LOmitted`).
 fn prune_repr_tree(
   opts : PrettyPrintOptions,
   tree : Tree[Label],
@@ -41,6 +46,7 @@ fn prune_repr_tree(
 }
 
 ///|
+/// Prune a `ReprDelta` tree using `opts.max_depth` (replacing with `Same(LOmitted)`).
 fn prune_delta_tree(
   opts : PrettyPrintOptions,
   tree : Tree[Delta[Label]],
@@ -58,6 +64,7 @@ fn prune_delta_tree(
 }
 
 ///|
+/// Heuristic “size” of a label for compact-vs-multiline decisions.
 fn label_size(label : Label) -> Int {
   match label {
     LInt(_) => 1
@@ -78,6 +85,7 @@ fn label_size(label : Label) -> Int {
 }
 
 ///|
+/// Heuristic “size” of a delta for compact-vs-multiline decisions.
 fn delta_size(delta : Delta[Label]) -> Int {
   match delta {
     Same(label) | Subtree(label) => label_size(label)
@@ -86,6 +94,7 @@ fn delta_size(delta : Delta[Label]) -> Int {
 }
 
 ///|
+/// Total “size” of a node (root + children).
 fn measure(root_size : Int, children : Array[Content]) -> Int {
   let mut total = root_size
   for c in children {
@@ -95,6 +104,7 @@ fn measure(root_size : Int, children : Array[Content]) -> Int {
 }
 
 ///|
+/// Render compactly when the measured size stays under `threshold`.
 fn with_resizing(
   root_size : Int,
   threshold : Int,
@@ -109,6 +119,7 @@ fn with_resizing(
 }
 
 ///|
+/// Returns `true` when a record field name can be printed without quotes.
 fn is_unquoted_key(key : String) -> Bool {
   fn is_lower_alpha_ascii(ch : Char) -> Bool {
     ch >= 'a' && ch <= 'z'
@@ -153,11 +164,13 @@ fn is_unquoted_key(key : String) -> Bool {
 }
 
 ///|
+/// Escape a string as a literal (used for quoted keys and `String` values).
 fn quote_string_literal(s : String) -> String {
   s.escape()
 }
 
 ///|
+/// Pretty-print a record field name (quoted when needed).
 fn pretty_print_label(name : String) -> String {
   if is_unquoted_key(name) {
     name
@@ -167,6 +180,7 @@ fn pretty_print_label(name : String) -> String {
 }
 
 ///|
+/// Render a single `Label` node into printable `Content`.
 fn pretty_print_repr_go(label : Label, children : Array[Content]) -> Content {
   match label {
     LInt(x) => leaf(x, needs_parens=x < 0)
@@ -228,21 +242,25 @@ fn pretty_print_repr_go(label : Label, children : Array[Content]) -> Content {
 }
 
 ///|
+/// ANSI escape for green.
 fn ansi_green() -> String {
   "\u001b[32m"
 }
 
 ///|
+/// ANSI escape for red.
 fn ansi_red() -> String {
   "\u001b[31m"
 }
 
 ///|
+/// ANSI escape reset.
 fn ansi_reset() -> String {
   "\u001b[0m"
 }
 
 ///|
+/// Mark added content with `+` (and optionally ANSI color).
 fn mark_added(opts : PrettyPrintOptions, x : ContentParens) -> ContentParens {
   if opts.use_ansi {
     surround(ansi_green() + "+", ansi_reset(), x)
@@ -252,6 +270,7 @@ fn mark_added(opts : PrettyPrintOptions, x : ContentParens) -> ContentParens {
 }
 
 ///|
+/// Mark removed content with `-` (and optionally ANSI color).
 fn mark_removed(opts : PrettyPrintOptions, x : ContentParens) -> ContentParens {
   if opts.use_ansi {
     surround(ansi_red() + "-", ansi_reset(), x)
@@ -261,6 +280,7 @@ fn mark_removed(opts : PrettyPrintOptions, x : ContentParens) -> ContentParens {
 }
 
 ///|
+/// Render a single `Delta[Label]` node into printable `Content`.
 fn pretty_print_delta_go(
   opts : PrettyPrintOptions,
   delta : Delta[Label],
@@ -291,6 +311,7 @@ fn pretty_print_delta_go(
 }
 
 ///|
+/// Pretty-print a `Repr` using explicit `PrettyPrintOptions`.
 pub fn pretty_print_repr_with(opts : PrettyPrintOptions, r : Repr) -> String {
   let tree = prune_repr_tree(opts, un_repr(r))
   let content = fold_tree(tree, fn(label, children) {
@@ -305,11 +326,13 @@ pub fn pretty_print_repr_with(opts : PrettyPrintOptions, r : Repr) -> String {
 }
 
 ///|
+/// Pretty-print a `Repr` using `default_pretty_print_options`.
 pub fn pretty_print_repr(r : Repr) -> String {
   pretty_print_repr_with(default_pretty_print_options, r)
 }
 
 ///|
+/// Pretty-print a `ReprDelta` using explicit `PrettyPrintOptions`.
 pub fn pretty_print_delta_with(
   opts : PrettyPrintOptions,
   d : ReprDelta,
@@ -327,6 +350,7 @@ pub fn pretty_print_delta_with(
 }
 
 ///|
+/// Pretty-print a `ReprDelta` using `default_pretty_print_options`.
 pub fn pretty_print_delta(d : ReprDelta) -> String {
   pretty_print_delta_with(default_pretty_print_options, d)
 }

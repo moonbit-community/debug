@@ -1,4 +1,5 @@
 ///|
+/// Small demo binary for `pretty_print` and `pretty_print_diff`.
 fn main {
   let items : Array[(String, Int)] = [("a", 3), ("b", 6), ("c", 13)]
   let x = Map::from_array(items[:])

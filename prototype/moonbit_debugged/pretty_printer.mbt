@@ -17,21 +17,25 @@ impl Add for ContentParens with add(self, other) {
 }
 
 ///|
+/// Empty content value.
 fn empty_content() -> Content {
   { size: 0, lines: [], needs_parens: false }
 }
 
 ///|
+/// Single literal token.
 fn verbatim(x : String) -> ContentParens {
   { size: 1, lines: [x] }
 }
 
 ///|
+/// Render any `Show` value as a leaf.
 fn[T : Show] leaf(x : T, needs_parens? : Bool = false) -> Content {
   { size: 1, lines: [repr(x)], needs_parens }
 }
 
 ///|
+/// Map a transformation over the lines of `ContentParens`.
 fn with_lines(
   r : ContentParens,
   f : (Array[String]) -> Array[String],
@@ -40,6 +44,7 @@ fn with_lines(
 }
 
 ///|
+/// Map a transformation over the lines of `Content`.
 fn with_lines_content(
   r : Content,
   f : (Array[String]) -> Array[String],
@@ -48,6 +53,7 @@ fn with_lines_content(
 }
 
 ///|
+/// Surround multi-line content with a prefix/suffix, preserving layout.
 fn surround_lines(
   start : String,
   finish : String,
@@ -66,6 +72,7 @@ fn surround_lines(
 }
 
 ///|
+/// Surround content with a prefix/suffix, preserving layout.
 fn surround(
   start : String,
   finish : String,
@@ -75,6 +82,7 @@ fn surround(
 }
 
 ///|
+/// Wrap in parentheses when `needs_parens` is true.
 fn wrap(c : Content) -> ContentParens {
   if c.needs_parens {
     { size: c.size, lines: surround_lines("(", ")", c.lines) }
@@ -84,26 +92,31 @@ fn wrap(c : Content) -> ContentParens {
 }
 
 ///|
+/// Convert `Content` to `ContentParens` without adding parentheses.
 fn no_wrap(c : Content) -> ContentParens {
   { size: c.size, lines: c.lines }
 }
 
 ///|
+/// Mark a content chunk as needing parentheses when embedded.
 fn parens(r : ContentParens) -> Content {
   { size: r.size, lines: r.lines, needs_parens: true }
 }
 
 ///|
+/// Mark a content chunk as not needing parentheses when embedded.
 fn no_parens(r : ContentParens) -> Content {
   { size: r.size, lines: r.lines, needs_parens: false }
 }
 
 ///|
+/// Trim whitespace (helper for compact formatting).
 fn trim_space(s : String) -> String {
   s.trim_space().to_string()
 }
 
 ///|
+/// Compact multi-line output into a single line when possible.
 fn compact_lines(lines : Array[String]) -> Array[String] {
   match lines {
     [] => []
@@ -123,16 +136,19 @@ fn compact_lines(lines : Array[String]) -> Array[String] {
 }
 
 ///|
+/// Compact a `Content` value.
 fn compact(r : Content) -> Content {
   with_lines_content(r, compact_lines)
 }
 
 ///|
+/// Indent every line by a fixed prefix.
 fn indent(prefix : String, r : ContentParens) -> ContentParens {
   with_lines(r, fn(lines) { lines.map(fn(line) { prefix + line }) })
 }
 
 ///|
+/// Join content chunks with commas and consistent indentation.
 fn comma_seq_lines(
   begin : String,
   end : String,
@@ -162,6 +178,7 @@ fn comma_seq_lines(
 }
 
 ///|
+/// Build a comma-separated sequence as `Content`.
 fn comma_seq(
   begin : String,
   end : String,
@@ -179,6 +196,7 @@ fn comma_seq(
 }
 
 ///|
+/// Convert content into a final `String`.
 fn print_content(r : ContentParens) -> String {
   r.lines.join("\n"[:])
 }
