@@ -1,0 +1,42 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "dii_user/moonbit_debugged/pretty_print"
+
+import(
+  "dii_user/moonbit_debugged/diff"
+  "dii_user/moonbit_debugged/repr"
+)
+
+// Values
+pub let default_pretty_print_options : PrettyPrintOptions
+
+pub fn pretty_print_delta(@diff.ReprDelta) -> String
+
+pub fn pretty_print_delta_with(PrettyPrintOptions, @diff.ReprDelta) -> String
+
+pub fn pretty_print_repr(@repr.Repr) -> String
+
+pub fn pretty_print_repr_with(PrettyPrintOptions, @repr.Repr) -> String
+
+// Errors
+
+// Types and methods
+type Content
+pub impl Eq for Content
+pub impl Show for Content
+
+type ContentParens
+pub impl Eq for ContentParens
+pub impl Show for ContentParens
+
+pub(all) struct PrettyPrintOptions {
+  max_depth : Int?
+  compact_threshold : Int
+  use_ansi : Bool
+}
+pub impl Eq for PrettyPrintOptions
+pub impl Show for PrettyPrintOptions
+
+// Type aliases
+
+// Traits
+

@@ -1,0 +1,6 @@
+{
+  "import": [
+    { "path": "dii_user/moonbit_debugged/repr", "alias": "repr" },
+    { "path": "dii_user/moonbit_debugged/diff", "alias": "diff" }
+  ]
+}

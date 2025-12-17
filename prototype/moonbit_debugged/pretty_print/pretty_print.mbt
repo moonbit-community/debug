@@ -16,21 +16,104 @@ pub let default_pretty_print_options : PrettyPrintOptions = {
 
 ///|
 /// Whether visiting this node should decrement the remaining depth budget.
-fn info_adds_depth(info : DebugInfo) -> Bool {
+fn info_adds_depth(info : @repr.DebugInfo) -> Bool {
   match info {
-    Prop(_, _) | AssocProp(_, _) => false
+    @repr.DebugInfo::Prop(_, _) | @repr.DebugInfo::AssocProp(_, _) => false
     _ => true
+  }
+}
+
+///|
+/// Child nodes of a `DebugInfo` node.
+fn info_children(info : @repr.DebugInfo) -> Array[@repr.DebugInfo] {
+  match info {
+    @repr.DebugInfo::IntLit(_)
+    | @repr.DebugInfo::DoubleLit(_)
+    | @repr.DebugInfo::BoolLit(_)
+    | @repr.DebugInfo::CharLit(_)
+    | @repr.DebugInfo::StringLit(_)
+    | @repr.DebugInfo::Literal(_)
+    | @repr.DebugInfo::Omitted => []
+    @repr.DebugInfo::Array(xs)
+    | @repr.DebugInfo::Record(xs)
+    | @repr.DebugInfo::Ctor(_, xs)
+    | @repr.DebugInfo::Opaque(_, xs)
+    | @repr.DebugInfo::Assoc(_, xs) => xs
+    @repr.DebugInfo::Prop(_, value) => [value]
+    @repr.DebugInfo::AssocProp(key, value) => [key, value]
+  }
+}
+
+///|
+/// Rebuild a `DebugInfo` node with a new child list (payload is preserved).
+fn info_with_children(
+  info : @repr.DebugInfo,
+  children : Array[@repr.DebugInfo],
+) -> @repr.DebugInfo {
+  match info {
+    @repr.DebugInfo::IntLit(_)
+    | @repr.DebugInfo::DoubleLit(_)
+    | @repr.DebugInfo::BoolLit(_)
+    | @repr.DebugInfo::CharLit(_)
+    | @repr.DebugInfo::StringLit(_)
+    | @repr.DebugInfo::Literal(_)
+    | @repr.DebugInfo::Omitted => info
+    @repr.DebugInfo::Array(_) => @repr.DebugInfo::Array(children)
+    @repr.DebugInfo::Record(_) => @repr.DebugInfo::Record(children)
+    @repr.DebugInfo::Ctor(name, _) => @repr.DebugInfo::Ctor(name, children)
+    @repr.DebugInfo::Opaque(name, _) => @repr.DebugInfo::Opaque(name, children)
+    @repr.DebugInfo::Assoc(name, _) => @repr.DebugInfo::Assoc(name, children)
+    @repr.DebugInfo::Prop(name, _) =>
+      match children {
+        [value] => @repr.DebugInfo::Prop(name, value)
+        _ => @repr.DebugInfo::Prop(name, @repr.DebugInfo::Omitted)
+      }
+    @repr.DebugInfo::AssocProp(_, _) =>
+      match children {
+        [key, value] => @repr.DebugInfo::AssocProp(key, value)
+        _ =>
+          @repr.DebugInfo::AssocProp(
+            @repr.DebugInfo::Omitted,
+            @repr.DebugInfo::Omitted,
+          )
+      }
+  }
+}
+
+///|
+/// A shallow copy of `info` containing only its “label” (children replaced).
+fn info_shallow(info : @repr.DebugInfo) -> @repr.DebugInfo {
+  match info {
+    @repr.DebugInfo::IntLit(_)
+    | @repr.DebugInfo::DoubleLit(_)
+    | @repr.DebugInfo::BoolLit(_)
+    | @repr.DebugInfo::CharLit(_)
+    | @repr.DebugInfo::StringLit(_)
+    | @repr.DebugInfo::Literal(_)
+    | @repr.DebugInfo::Omitted => info
+    @repr.DebugInfo::Array(_) => @repr.DebugInfo::Array([])
+    @repr.DebugInfo::Record(_) => @repr.DebugInfo::Record([])
+    @repr.DebugInfo::Ctor(name, _) => @repr.DebugInfo::Ctor(name, [])
+    @repr.DebugInfo::Opaque(name, _) => @repr.DebugInfo::Opaque(name, [])
+    @repr.DebugInfo::Assoc(name, _) => @repr.DebugInfo::Assoc(name, [])
+    @repr.DebugInfo::Prop(name, _) =>
+      @repr.DebugInfo::Prop(name, @repr.DebugInfo::Omitted)
+    @repr.DebugInfo::AssocProp(_, _) =>
+      @repr.DebugInfo::AssocProp(
+        @repr.DebugInfo::Omitted,
+        @repr.DebugInfo::Omitted,
+      )
   }
 }
 
 ///|
 /// Prune a `DebugInfo` value to a given depth (replacing pruned subtrees).
 fn prune_info(
-  info : DebugInfo,
-  replacement~ : DebugInfo,
-  counts~ : (DebugInfo) -> Bool,
+  info : @repr.DebugInfo,
+  replacement~ : @repr.DebugInfo,
+  counts~ : (@repr.DebugInfo) -> Bool,
   depth~ : Int,
-) -> DebugInfo {
+) -> @repr.DebugInfo {
   fn int_max(x : Int, y : Int) -> Int {
     if x > y {
       x
@@ -39,8 +122,8 @@ fn prune_info(
     }
   }
 
-  fn go(d : Int, node : DebugInfo) -> DebugInfo {
-    let children = debug_info_children(node)
+  fn go(d : Int, node : @repr.DebugInfo) -> @repr.DebugInfo {
+    let children = info_children(node)
     if d <= 0 {
       if children.is_empty() {
         node
@@ -51,7 +134,7 @@ fn prune_info(
       node
     } else {
       let next_depth = if counts(node) { d - 1 } else { d }
-      debug_info_with_children(
+      info_with_children(
         node,
         children.map(fn(child) { go(next_depth, child) }),
       )
@@ -63,17 +146,28 @@ fn prune_info(
 
 ///|
 /// Prune a `Repr` using `opts.max_depth` (replacing with `Omitted`).
-fn prune_repr_info(opts : PrettyPrintOptions, info : DebugInfo) -> DebugInfo {
+fn prune_repr_info(
+  opts : PrettyPrintOptions,
+  info : @repr.DebugInfo,
+) -> @repr.DebugInfo {
   match opts.max_depth {
     None => info
     Some(depth) =>
-      prune_info(info, replacement=Omitted, counts=info_adds_depth, depth~)
+      prune_info(
+        info,
+        replacement=@repr.DebugInfo::Omitted,
+        counts=info_adds_depth,
+        depth~,
+      )
   }
 }
 
 ///|
 /// Prune a `DebugDelta` using `opts.max_depth` (replacing with `Same(Omitted, [])`).
-fn prune_delta(opts : PrettyPrintOptions, delta : DebugDelta) -> DebugDelta {
+fn prune_delta(
+  opts : PrettyPrintOptions,
+  delta : @diff.DebugDelta,
+) -> @diff.DebugDelta {
   fn int_max(x : Int, y : Int) -> Int {
     if x > y {
       x
@@ -82,52 +176,65 @@ fn prune_delta(opts : PrettyPrintOptions, delta : DebugDelta) -> DebugDelta {
     }
   }
 
-  fn go(d : Int, node : DebugDelta) -> DebugDelta {
+  fn go(d : Int, node : @diff.DebugDelta) -> @diff.DebugDelta {
     match node {
-      Same(label, children) =>
+      @diff.DebugDelta::Same(label, children) =>
         if d <= 0 {
           if children.is_empty() {
             node
           } else {
-            Same(Omitted, [])
+            @diff.DebugDelta::Same(@repr.DebugInfo::Omitted, [])
           }
         } else {
           let next_depth = if info_adds_depth(label) { d - 1 } else { d }
-          Same(label, children.map(fn(child) { go(next_depth, child) }))
+          @diff.DebugDelta::Same(
+            label,
+            children.map(fn(child) { go(next_depth, child) }),
+          )
         }
-      Different(left, right) =>
+      @diff.DebugDelta::Different(left, right) =>
         if d <= 0 {
-          Same(Omitted, [])
+          @diff.DebugDelta::Same(@repr.DebugInfo::Omitted, [])
         } else {
-          Different(
+          @diff.DebugDelta::Different(
             prune_info(
               left,
-              replacement=Omitted,
+              replacement=@repr.DebugInfo::Omitted,
               counts=info_adds_depth,
               depth=d,
             ),
             prune_info(
               right,
-              replacement=Omitted,
+              replacement=@repr.DebugInfo::Omitted,
               counts=info_adds_depth,
               depth=d,
             ),
           )
         }
-      Extra1(x) =>
+      @diff.DebugDelta::Extra1(x) =>
         if d <= 0 {
-          Same(Omitted, [])
+          @diff.DebugDelta::Same(@repr.DebugInfo::Omitted, [])
         } else {
-          Extra1(
-            prune_info(x, replacement=Omitted, counts=info_adds_depth, depth=d),
+          @diff.DebugDelta::Extra1(
+            prune_info(
+              x,
+              replacement=@repr.DebugInfo::Omitted,
+              counts=info_adds_depth,
+              depth=d,
+            ),
           )
         }
-      Extra2(x) =>
+      @diff.DebugDelta::Extra2(x) =>
         if d <= 0 {
-          Same(Omitted, [])
+          @diff.DebugDelta::Same(@repr.DebugInfo::Omitted, [])
         } else {
-          Extra2(
-            prune_info(x, replacement=Omitted, counts=info_adds_depth, depth=d),
+          @diff.DebugDelta::Extra2(
+            prune_info(
+              x,
+              replacement=@repr.DebugInfo::Omitted,
+              counts=info_adds_depth,
+              depth=d,
+            ),
           )
         }
     }
@@ -141,30 +248,30 @@ fn prune_delta(opts : PrettyPrintOptions, delta : DebugDelta) -> DebugDelta {
 
 ///|
 /// Heuristic “size” of a node for compact-vs-multiline decisions.
-fn info_size(info : DebugInfo) -> Int {
+fn info_size(info : @repr.DebugInfo) -> Int {
   match info {
-    IntLit(_) => 1
-    DoubleLit(_) => 1
-    BoolLit(_) => 1
-    CharLit(_) => 1
-    StringLit(s) => if s.length() <= 15 { 1 } else { 2 }
-    Array(_) => 1
-    Record(_) => 2
-    Prop(name, _) => if name.length() <= 15 { 0 } else { 1 }
-    Ctor(name, _) => if name.length() <= 15 { 1 } else { 2 }
-    Opaque(name, _) => if name.length() <= 15 { 1 } else { 2 }
-    Literal(s) => if s.length() <= 15 { 1 } else { 2 }
-    Assoc(_, _) => 2
-    AssocProp(_, _) => 0
-    Omitted => 0
+    @repr.DebugInfo::IntLit(_) => 1
+    @repr.DebugInfo::DoubleLit(_) => 1
+    @repr.DebugInfo::BoolLit(_) => 1
+    @repr.DebugInfo::CharLit(_) => 1
+    @repr.DebugInfo::StringLit(s) => if s.length() <= 15 { 1 } else { 2 }
+    @repr.DebugInfo::Array(_) => 1
+    @repr.DebugInfo::Record(_) => 2
+    @repr.DebugInfo::Prop(name, _) => if name.length() <= 15 { 0 } else { 1 }
+    @repr.DebugInfo::Ctor(name, _) => if name.length() <= 15 { 1 } else { 2 }
+    @repr.DebugInfo::Opaque(name, _) => if name.length() <= 15 { 1 } else { 2 }
+    @repr.DebugInfo::Literal(s) => if s.length() <= 15 { 1 } else { 2 }
+    @repr.DebugInfo::Assoc(_, _) => 2
+    @repr.DebugInfo::AssocProp(_, _) => 0
+    @repr.DebugInfo::Omitted => 0
   }
 }
 
 ///|
 /// Heuristic “size” of a delta for compact-vs-multiline decisions.
-fn delta_root_size(delta : DebugDelta) -> Int {
+fn delta_root_size(delta : @diff.DebugDelta) -> Int {
   match delta {
-    Same(label, _) => info_size(label)
+    @diff.DebugDelta::Same(label, _) => info_size(label)
     _ => 0
   }
 }
@@ -258,19 +365,20 @@ fn pretty_print_label(name : String) -> String {
 ///|
 /// Render a single `DebugInfo` node (label + rendered children) into `Content`.
 fn pretty_print_repr_go(
-  label : DebugInfo,
+  label : @repr.DebugInfo,
   children : Array[Content],
 ) -> Content {
   match label {
-    IntLit(x) => leaf(x, needs_parens=x < 0)
-    DoubleLit(x) => {
+    @repr.DebugInfo::IntLit(x) => leaf(x, needs_parens=x < 0)
+    @repr.DebugInfo::DoubleLit(x) => {
       let needs_parens = 1.0 / x < 0.0
       leaf(x, needs_parens~)
     }
-    BoolLit(x) => leaf(x)
-    CharLit(x) => leaf(x)
-    StringLit(x) => no_parens(verbatim(quote_string_literal(x)))
-    Ctor(name, _) => {
+    @repr.DebugInfo::BoolLit(x) => leaf(x)
+    @repr.DebugInfo::CharLit(x) => leaf(x)
+    @repr.DebugInfo::StringLit(x) =>
+      no_parens(verbatim(quote_string_literal(x)))
+    @repr.DebugInfo::Ctor(name, _) => {
       let rendered_children = children.map(wrap).map(fn(c) { indent("  ", c) })
       let content = verbatim(name) +
         rendered_children.fold(init={ size: 0, lines: [] }, fn(acc, c) {
@@ -282,9 +390,9 @@ fn pretty_print_repr_go(
         no_parens(content)
       }
     }
-    Array(_) => comma_seq("[ ", " ]", children.map(no_wrap))
-    Record(_) => comma_seq("{ ", " }", children.map(no_wrap))
-    Opaque(name, _) =>
+    @repr.DebugInfo::Array(_) => comma_seq("[ ", " ]", children.map(no_wrap))
+    @repr.DebugInfo::Record(_) => comma_seq("{ ", " }", children.map(no_wrap))
+    @repr.DebugInfo::Opaque(name, _) =>
       if children.is_empty() {
         no_parens(surround("<", ">", verbatim(name)))
       } else {
@@ -292,8 +400,8 @@ fn pretty_print_repr_go(
           indent("  ", no_wrap(comma_seq("", "", children.map(no_wrap))))
         no_parens(surround("<", ">", body))
       }
-    Literal(str) => no_parens(verbatim(str))
-    Assoc(name, _) =>
+    @repr.DebugInfo::Literal(str) => no_parens(verbatim(str))
+    @repr.DebugInfo::Assoc(name, _) =>
       no_parens(
         surround(
           "<",
@@ -302,12 +410,12 @@ fn pretty_print_repr_go(
           no_wrap(comma_seq("{ ", " }", children.map(no_wrap))),
         ),
       )
-    AssocProp(_, _) =>
+    @repr.DebugInfo::AssocProp(_, _) =>
       match children {
         [key, val] => no_parens(surround("", ":", no_wrap(key)) + no_wrap(val))
         _ => empty_content()
       }
-    Prop(name, _) =>
+    @repr.DebugInfo::Prop(name, _) =>
       match children {
         [val] =>
           no_parens(
@@ -316,7 +424,7 @@ fn pretty_print_repr_go(
           )
         _ => empty_content()
       }
-    Omitted => parens(verbatim("..."))
+    @repr.DebugInfo::Omitted => parens(verbatim("..."))
   }
 }
 
@@ -360,11 +468,9 @@ fn mark_removed(opts : PrettyPrintOptions, x : ContentParens) -> ContentParens {
 
 ///|
 /// Render a `DebugInfo` as `Content` with resizing decisions.
-fn render_repr(opts : PrettyPrintOptions, info : DebugInfo) -> Content {
-  let label = debug_info_shallow(info)
-  let children = debug_info_children(info).map(fn(child) {
-    render_repr(opts, child)
-  })
+fn render_repr(opts : PrettyPrintOptions, info : @repr.DebugInfo) -> Content {
+  let label = info_shallow(info)
+  let children = info_children(info).map(fn(child) { render_repr(opts, child) })
   with_resizing(
     info_size(label),
     opts.compact_threshold,
@@ -375,9 +481,9 @@ fn render_repr(opts : PrettyPrintOptions, info : DebugInfo) -> Content {
 
 ///|
 /// Render a `DebugDelta` as `Content` with resizing decisions.
-fn render_delta(opts : PrettyPrintOptions, delta : DebugDelta) -> Content {
+fn render_delta(opts : PrettyPrintOptions, delta : @diff.DebugDelta) -> Content {
   match delta {
-    Same(label, children_delta) => {
+    @diff.DebugDelta::Same(label, children_delta) => {
       let children = children_delta.map(fn(child) { render_delta(opts, child) })
       with_resizing(
         delta_root_size(delta),
@@ -386,7 +492,7 @@ fn render_delta(opts : PrettyPrintOptions, delta : DebugDelta) -> Content {
         children,
       )
     }
-    Different(left, right) => {
+    @diff.DebugDelta::Different(left, right) => {
       let children : Array[Content] = [
         render_repr(opts, left),
         render_repr(opts, right),
@@ -407,7 +513,7 @@ fn render_delta(opts : PrettyPrintOptions, delta : DebugDelta) -> Content {
         children,
       )
     }
-    Extra1(x) => {
+    @diff.DebugDelta::Extra1(x) => {
       let children : Array[Content] = [render_repr(opts, x)]
       with_resizing(
         0,
@@ -421,7 +527,7 @@ fn render_delta(opts : PrettyPrintOptions, delta : DebugDelta) -> Content {
         children,
       )
     }
-    Extra2(x) => {
+    @diff.DebugDelta::Extra2(x) => {
       let children : Array[Content] = [render_repr(opts, x)]
       with_resizing(
         0,
@@ -440,14 +546,17 @@ fn render_delta(opts : PrettyPrintOptions, delta : DebugDelta) -> Content {
 
 ///|
 /// Pretty-print a `Repr` using explicit `PrettyPrintOptions`.
-pub fn pretty_print_repr_with(opts : PrettyPrintOptions, r : Repr) -> String {
-  let info = prune_repr_info(opts, un_repr(r))
+pub fn pretty_print_repr_with(
+  opts : PrettyPrintOptions,
+  r : @repr.Repr,
+) -> String {
+  let info = prune_repr_info(opts, @repr.Repr::info(r))
   print_content(no_wrap(render_repr(opts, info)))
 }
 
 ///|
 /// Pretty-print a `Repr` using `default_pretty_print_options`.
-pub fn pretty_print_repr(r : Repr) -> String {
+pub fn pretty_print_repr(r : @repr.Repr) -> String {
   pretty_print_repr_with(default_pretty_print_options, r)
 }
 
@@ -455,14 +564,14 @@ pub fn pretty_print_repr(r : Repr) -> String {
 /// Pretty-print a `ReprDelta` using explicit `PrettyPrintOptions`.
 pub fn pretty_print_delta_with(
   opts : PrettyPrintOptions,
-  d : ReprDelta,
+  d : @diff.ReprDelta,
 ) -> String {
-  let delta = prune_delta(opts, un_repr_delta(d))
+  let delta = prune_delta(opts, @diff.ReprDelta::delta(d))
   print_content(no_wrap(render_delta(opts, delta)))
 }
 
 ///|
 /// Pretty-print a `ReprDelta` using `default_pretty_print_options`.
-pub fn pretty_print_delta(d : ReprDelta) -> String {
+pub fn pretty_print_delta(d : @diff.ReprDelta) -> String {
   pretty_print_delta_with(default_pretty_print_options, d)
 }

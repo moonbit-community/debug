@@ -35,11 +35,11 @@ test "custom struct pretty_print" {
 test "custom enum pretty_print and prune" {
   let expr : Expr = Add(left=Add(left=Lit(1), right=Var("x")), right=Lit(2))
   inspect(pretty_print(expr), content="Add (Add (Lit 1) (Var \"x\")) (Lit 2)")
-  let opts : PrettyPrintOptions = {
-    max_depth: Some(2),
-    compact_threshold: 100,
-    use_ansi: false,
-  }
+  let opts = pretty_print_options(
+    max_depth=Some(2),
+    compact_threshold=100,
+    use_ansi=false,
+  )
   inspect(
     pretty_print_with(opts, expr),
     content="Add (Add (...) (...)) (Lit 2)",
@@ -50,11 +50,11 @@ test "custom enum pretty_print and prune" {
 test "custom enum diff (no ansi)" {
   let x : Expr = Add(left=Lit(1), right=Var("x"))
   let y : Expr = Add(left=Lit(1), right=Var("y"))
-  let opts : PrettyPrintOptions = {
-    max_depth: Some(6),
-    compact_threshold: 100,
-    use_ansi: false,
-  }
+  let opts = pretty_print_options(
+    max_depth=Some(6),
+    compact_threshold=100,
+    use_ansi=false,
+  )
   inspect(
     pretty_print_diff_with(opts, x, y),
     content="Add (Lit 1) (Var -\"x\" +\"y\")",

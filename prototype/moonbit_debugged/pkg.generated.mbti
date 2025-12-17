@@ -1,113 +1,82 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "dii_user/moonbit_debugged"
 
+import(
+  "dii_user/moonbit_debugged/diff"
+  "dii_user/moonbit_debugged/pretty_print"
+  "dii_user/moonbit_debugged/repr"
+)
+
 // Values
-pub fn array(Array[Repr]) -> Repr
+pub fn array(Array[@repr.Repr]) -> @repr.Repr
 
-pub fn assoc(String, Array[(Repr, Repr)]) -> Repr
+pub fn assoc(String, Array[(@repr.Repr, @repr.Repr)]) -> @repr.Repr
 
-pub fn bool(Bool) -> Repr
+pub fn bool(Bool) -> @repr.Repr
 
-pub fn char(Char) -> Repr
+pub fn char(Char) -> @repr.Repr
 
-pub fn collection(String, Array[Repr]) -> Repr
+pub fn collection(String, Array[@repr.Repr]) -> @repr.Repr
 
-pub fn ctor(String, Array[Repr]) -> Repr
+pub fn ctor(String, Array[@repr.Repr]) -> @repr.Repr
 
-pub fn[T : Debug] debug(T) -> Repr
+pub fn[T : Debug] debug(T) -> @repr.Repr
 
-pub let default_diff_options : DiffOptions
+pub let default_diff_options : @diff.DiffOptions
 
-pub let default_pretty_print_options : PrettyPrintOptions
+pub let default_pretty_print_options : @pretty_print.PrettyPrintOptions
 
-pub fn[T : Debug] diff(T, T) -> ReprDelta
+pub fn[T : Debug] diff(T, T) -> @diff.ReprDelta
 
-pub fn diff_repr(Repr, Repr) -> ReprDelta
+pub fn diff_options(max_relative_error~ : Double) -> @diff.DiffOptions
 
-pub fn diff_repr_with(DiffOptions, Repr, Repr) -> ReprDelta
+pub fn diff_repr(@repr.Repr, @repr.Repr) -> @diff.ReprDelta
 
-pub fn[T : Debug] diff_with(DiffOptions, T, T) -> ReprDelta
+pub fn diff_repr_with(@diff.DiffOptions, @repr.Repr, @repr.Repr) -> @diff.ReprDelta
 
-pub fn double(Double) -> Repr
+pub fn[T : Debug] diff_with(@diff.DiffOptions, T, T) -> @diff.ReprDelta
 
-pub fn int(Int) -> Repr
+pub fn double(Double) -> @repr.Repr
 
-pub fn opaque_(String) -> Repr
+pub fn int(Int) -> @repr.Repr
 
-pub fn opaque_child(String, Repr) -> Repr
+pub fn opaque_(String) -> @repr.Repr
 
-pub fn opaque_literal(String, String) -> Repr
+pub fn opaque_child(String, @repr.Repr) -> @repr.Repr
+
+pub fn opaque_literal(String, String) -> @repr.Repr
 
 pub fn[T : Debug] pretty_print(T) -> String
 
-pub fn pretty_print_delta(ReprDelta) -> String
+pub fn pretty_print_delta(@diff.ReprDelta) -> String
 
-pub fn pretty_print_delta_with(PrettyPrintOptions, ReprDelta) -> String
+pub fn pretty_print_delta_with(@pretty_print.PrettyPrintOptions, @diff.ReprDelta) -> String
 
 pub fn[T : Debug] pretty_print_diff(T, T) -> String
 
-pub fn[T : Debug] pretty_print_diff_with(PrettyPrintOptions, T, T) -> String
+pub fn[T : Debug] pretty_print_diff_with(@pretty_print.PrettyPrintOptions, T, T) -> String
 
-pub fn pretty_print_repr(Repr) -> String
+pub fn pretty_print_options(max_depth~ : Int?, compact_threshold~ : Int, use_ansi~ : Bool) -> @pretty_print.PrettyPrintOptions
 
-pub fn pretty_print_repr_with(PrettyPrintOptions, Repr) -> String
+pub fn pretty_print_repr(@repr.Repr) -> String
 
-pub fn[T : Debug] pretty_print_with(PrettyPrintOptions, T) -> String
+pub fn pretty_print_repr_with(@pretty_print.PrettyPrintOptions, @repr.Repr) -> String
 
-pub fn record(Array[(String, Repr)]) -> Repr
+pub fn[T : Debug] pretty_print_with(@pretty_print.PrettyPrintOptions, T) -> String
 
-pub fn string(String) -> Repr
+pub fn record(Array[(String, @repr.Repr)]) -> @repr.Repr
+
+pub fn string(String) -> @repr.Repr
 
 // Errors
 
 // Types and methods
-type Content
-pub impl Eq for Content
-pub impl Show for Content
-
-type ContentParens
-pub impl Eq for ContentParens
-pub impl Show for ContentParens
-
-type DebugDelta
-pub impl Compare for DebugDelta
-pub impl Eq for DebugDelta
-
-type DebugInfo
-pub impl Compare for DebugInfo
-pub impl Eq for DebugInfo
-
-pub(all) struct DiffOptions {
-  max_relative_error : Double
-}
-pub impl Eq for DiffOptions
-pub impl Show for DiffOptions
-
-pub(all) struct PrettyPrintOptions {
-  max_depth : Int?
-  compact_threshold : Int
-  use_ansi : Bool
-}
-pub impl Eq for PrettyPrintOptions
-pub impl Show for PrettyPrintOptions
-
-pub struct Repr(DebugInfo)
-#deprecated
-pub fn Repr::inner(Self) -> DebugInfo
-pub impl Compare for Repr
-pub impl Eq for Repr
-
-pub struct ReprDelta(DebugDelta)
-#deprecated
-pub fn ReprDelta::inner(Self) -> DebugDelta
-pub impl Compare for ReprDelta
-pub impl Eq for ReprDelta
 
 // Type aliases
 
 // Traits
 pub(open) trait Debug {
-  debug(Self) -> Repr
+  debug(Self) -> @repr.Repr
 }
 pub impl Debug for Bool
 pub impl Debug for Char

@@ -55,11 +55,17 @@ pub impl @dbg.Debug for Person with debug(self) {
 
 ### Pretty printing (`PrettyPrintOptions`)
 
+- `PrettyPrintOptions` is defined in `dii_user/moonbit_debugged/pretty_print`.
+  If you only import `dii_user/moonbit_debugged`, use `pretty_print_options(...)`
+  to construct it.
 - `max_depth`: prune large values (`Some(n)`), or disable with `None`
 - `compact_threshold`: controls single-line vs multi-line rendering
 - `use_ansi`: enables `+`/`-` with ANSI colors in diffs
 
 ### Diffing (`DiffOptions`)
+
+`DiffOptions` is defined in `dii_user/moonbit_debugged/diff`. If you only import
+`dii_user/moonbit_debugged`, use `diff_options(...)` to construct it.
 
 Use `diff_with` / `diff_repr_with` to set float tolerance via
 `max_relative_error`.
@@ -71,10 +77,10 @@ examples.
 
 ```mbt test
 inspect(pretty_print([1, 2, 3]), content="[ 1, 2, 3 ]")
-let opts : PrettyPrintOptions = {
-  max_depth: None,
-  compact_threshold: 100,
-  use_ansi: false,
-}
+let opts = pretty_print_options(
+  max_depth=None,
+  compact_threshold=100,
+  use_ansi=false,
+)
 inspect(pretty_print_delta_with(opts, diff(1, 2)), content="-1 +2")
 ```

@@ -1,0 +1,44 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "dii_user/moonbit_debugged/diff"
+
+import(
+  "dii_user/moonbit_debugged/repr"
+)
+
+// Values
+pub let default_diff_options : DiffOptions
+
+pub fn diff_repr(@repr.Repr, @repr.Repr) -> ReprDelta
+
+pub fn diff_repr_with(DiffOptions, @repr.Repr, @repr.Repr) -> ReprDelta
+
+// Errors
+
+// Types and methods
+pub(all) enum DebugDelta {
+  Same(@repr.DebugInfo, Array[DebugDelta])
+  Different(@repr.DebugInfo, @repr.DebugInfo)
+  Extra1(@repr.DebugInfo)
+  Extra2(@repr.DebugInfo)
+}
+pub impl Compare for DebugDelta
+pub impl Eq for DebugDelta
+
+pub(all) struct DiffOptions {
+  max_relative_error : Double
+}
+pub impl Eq for DiffOptions
+pub impl Show for DiffOptions
+
+pub struct ReprDelta(DebugDelta)
+pub fn ReprDelta::delta(Self) -> DebugDelta
+pub fn ReprDelta::from_delta(DebugDelta) -> Self
+#deprecated
+pub fn ReprDelta::inner(Self) -> DebugDelta
+pub impl Compare for ReprDelta
+pub impl Eq for ReprDelta
+
+// Type aliases
+
+// Traits
+
