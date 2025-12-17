@@ -15,80 +15,156 @@ pub let default_pretty_print_options : PrettyPrintOptions = {
 }
 
 ///|
-/// Whether visiting this label should decrement the remaining depth budget.
-fn label_adds_depth(label : Label) -> Bool {
-  match label {
-    LProp(_) | LAssocProp => false
+/// Whether visiting this node should decrement the remaining depth budget.
+fn info_adds_depth(info : DebugInfo) -> Bool {
+  match info {
+    Prop(_, _) | AssocProp(_, _) => false
     _ => true
   }
 }
 
 ///|
-/// Whether visiting this delta should decrement the remaining depth budget.
-fn delta_adds_depth(delta : Delta[Label]) -> Bool {
-  match delta {
-    Same(label) | Subtree(label) => label_adds_depth(label)
-    _ => false
+/// Prune a `DebugInfo` value to a given depth (replacing pruned subtrees).
+fn prune_info(
+  info : DebugInfo,
+  replacement~ : DebugInfo,
+  counts~ : (DebugInfo) -> Bool,
+  depth~ : Int,
+) -> DebugInfo {
+  fn int_max(x : Int, y : Int) -> Int {
+    if x > y {
+      x
+    } else {
+      y
+    }
   }
-}
 
-///|
-/// Prune a `Repr` tree using `opts.max_depth` (replacing with `LOmitted`).
-fn prune_repr_tree(
-  opts : PrettyPrintOptions,
-  tree : Tree[Label],
-) -> Tree[Label] {
-  match opts.max_depth {
-    None => tree
-    Some(depth) =>
-      prune_tree(tree, replacement=LOmitted, counts=label_adds_depth, depth~)
-  }
-}
-
-///|
-/// Prune a `ReprDelta` tree using `opts.max_depth` (replacing with `Same(LOmitted)`).
-fn prune_delta_tree(
-  opts : PrettyPrintOptions,
-  tree : Tree[Delta[Label]],
-) -> Tree[Delta[Label]] {
-  match opts.max_depth {
-    None => tree
-    Some(depth) =>
-      prune_tree(
-        tree,
-        replacement=Same(LOmitted),
-        counts=delta_adds_depth,
-        depth~,
+  fn go(d : Int, node : DebugInfo) -> DebugInfo {
+    let children = debug_info_children(node)
+    if d <= 0 {
+      if children.is_empty() {
+        node
+      } else {
+        replacement
+      }
+    } else if children.is_empty() {
+      node
+    } else {
+      let next_depth = if counts(node) { d - 1 } else { d }
+      debug_info_with_children(
+        node,
+        children.map(fn(child) { go(next_depth, child) }),
       )
+    }
+  }
+
+  go(int_max(1, depth), info)
+}
+
+///|
+/// Prune a `Repr` using `opts.max_depth` (replacing with `Omitted`).
+fn prune_repr_info(opts : PrettyPrintOptions, info : DebugInfo) -> DebugInfo {
+  match opts.max_depth {
+    None => info
+    Some(depth) =>
+      prune_info(info, replacement=Omitted, counts=info_adds_depth, depth~)
   }
 }
 
 ///|
-/// Heuristic “size” of a label for compact-vs-multiline decisions.
-fn label_size(label : Label) -> Int {
-  match label {
-    LInt(_) => 1
-    LDouble(_) => 1
-    LBool(_) => 1
-    LChar(_) => 1
-    LString(s) => if s.length() <= 15 { 1 } else { 2 }
-    LArray => 1
-    LRecord => 2
-    LProp(name) => if name.length() <= 15 { 0 } else { 1 }
-    LApp(name) => if name.length() <= 15 { 1 } else { 2 }
-    LOpaque(name) => if name.length() <= 15 { 1 } else { 2 }
-    LLiteral(s) => if s.length() <= 15 { 1 } else { 2 }
-    LAssoc(_) => 2
-    LAssocProp => 0
-    LOmitted => 0
+/// Prune a `DebugDelta` using `opts.max_depth` (replacing with `Same(Omitted, [])`).
+fn prune_delta(opts : PrettyPrintOptions, delta : DebugDelta) -> DebugDelta {
+  fn int_max(x : Int, y : Int) -> Int {
+    if x > y {
+      x
+    } else {
+      y
+    }
+  }
+
+  fn go(d : Int, node : DebugDelta) -> DebugDelta {
+    match node {
+      Same(label, children) =>
+        if d <= 0 {
+          if children.is_empty() {
+            node
+          } else {
+            Same(Omitted, [])
+          }
+        } else {
+          let next_depth = if info_adds_depth(label) { d - 1 } else { d }
+          Same(label, children.map(fn(child) { go(next_depth, child) }))
+        }
+      Different(left, right) =>
+        if d <= 0 {
+          Same(Omitted, [])
+        } else {
+          Different(
+            prune_info(
+              left,
+              replacement=Omitted,
+              counts=info_adds_depth,
+              depth=d,
+            ),
+            prune_info(
+              right,
+              replacement=Omitted,
+              counts=info_adds_depth,
+              depth=d,
+            ),
+          )
+        }
+      Extra1(x) =>
+        if d <= 0 {
+          Same(Omitted, [])
+        } else {
+          Extra1(
+            prune_info(x, replacement=Omitted, counts=info_adds_depth, depth=d),
+          )
+        }
+      Extra2(x) =>
+        if d <= 0 {
+          Same(Omitted, [])
+        } else {
+          Extra2(
+            prune_info(x, replacement=Omitted, counts=info_adds_depth, depth=d),
+          )
+        }
+    }
+  }
+
+  match opts.max_depth {
+    None => delta
+    Some(depth) => go(int_max(1, depth), delta)
+  }
+}
+
+///|
+/// Heuristic “size” of a node for compact-vs-multiline decisions.
+fn info_size(info : DebugInfo) -> Int {
+  match info {
+    IntLit(_) => 1
+    DoubleLit(_) => 1
+    BoolLit(_) => 1
+    CharLit(_) => 1
+    StringLit(s) => if s.length() <= 15 { 1 } else { 2 }
+    Array(_) => 1
+    Record(_) => 2
+    Prop(name, _) => if name.length() <= 15 { 0 } else { 1 }
+    Ctor(name, _) => if name.length() <= 15 { 1 } else { 2 }
+    Opaque(name, _) => if name.length() <= 15 { 1 } else { 2 }
+    Literal(s) => if s.length() <= 15 { 1 } else { 2 }
+    Assoc(_, _) => 2
+    AssocProp(_, _) => 0
+    Omitted => 0
   }
 }
 
 ///|
 /// Heuristic “size” of a delta for compact-vs-multiline decisions.
-fn delta_size(delta : Delta[Label]) -> Int {
+fn delta_root_size(delta : DebugDelta) -> Int {
   match delta {
-    Same(label) | Subtree(label) => label_size(label)
+    Same(label, _) => info_size(label)
     _ => 0
   }
 }
@@ -180,18 +256,21 @@ fn pretty_print_label(name : String) -> String {
 }
 
 ///|
-/// Render a single `Label` node into printable `Content`.
-fn pretty_print_repr_go(label : Label, children : Array[Content]) -> Content {
+/// Render a single `DebugInfo` node (label + rendered children) into `Content`.
+fn pretty_print_repr_go(
+  label : DebugInfo,
+  children : Array[Content],
+) -> Content {
   match label {
-    LInt(x) => leaf(x, needs_parens=x < 0)
-    LDouble(x) => {
+    IntLit(x) => leaf(x, needs_parens=x < 0)
+    DoubleLit(x) => {
       let needs_parens = 1.0 / x < 0.0
       leaf(x, needs_parens~)
     }
-    LBool(x) => leaf(x)
-    LChar(x) => leaf(x)
-    LString(x) => no_parens(verbatim(quote_string_literal(x)))
-    LApp(name) => {
+    BoolLit(x) => leaf(x)
+    CharLit(x) => leaf(x)
+    StringLit(x) => no_parens(verbatim(quote_string_literal(x)))
+    Ctor(name, _) => {
       let rendered_children = children.map(wrap).map(fn(c) { indent("  ", c) })
       let content = verbatim(name) +
         rendered_children.fold(init={ size: 0, lines: [] }, fn(acc, c) {
@@ -203,9 +282,9 @@ fn pretty_print_repr_go(label : Label, children : Array[Content]) -> Content {
         no_parens(content)
       }
     }
-    LArray => comma_seq("[ ", " ]", children.map(no_wrap))
-    LRecord => comma_seq("{ ", " }", children.map(no_wrap))
-    LOpaque(name) =>
+    Array(_) => comma_seq("[ ", " ]", children.map(no_wrap))
+    Record(_) => comma_seq("{ ", " }", children.map(no_wrap))
+    Opaque(name, _) =>
       if children.is_empty() {
         no_parens(surround("<", ">", verbatim(name)))
       } else {
@@ -213,8 +292,8 @@ fn pretty_print_repr_go(label : Label, children : Array[Content]) -> Content {
           indent("  ", no_wrap(comma_seq("", "", children.map(no_wrap))))
         no_parens(surround("<", ">", body))
       }
-    LLiteral(str) => no_parens(verbatim(str))
-    LAssoc(name) =>
+    Literal(str) => no_parens(verbatim(str))
+    Assoc(name, _) =>
       no_parens(
         surround(
           "<",
@@ -223,12 +302,12 @@ fn pretty_print_repr_go(label : Label, children : Array[Content]) -> Content {
           no_wrap(comma_seq("{ ", " }", children.map(no_wrap))),
         ),
       )
-    LAssocProp =>
+    AssocProp(_, _) =>
       match children {
         [key, val] => no_parens(surround("", ":", no_wrap(key)) + no_wrap(val))
         _ => empty_content()
       }
-    LProp(name) =>
+    Prop(name, _) =>
       match children {
         [val] =>
           no_parens(
@@ -237,7 +316,7 @@ fn pretty_print_repr_go(label : Label, children : Array[Content]) -> Content {
           )
         _ => empty_content()
       }
-    LOmitted => parens(verbatim("..."))
+    Omitted => parens(verbatim("..."))
   }
 }
 
@@ -280,49 +359,90 @@ fn mark_removed(opts : PrettyPrintOptions, x : ContentParens) -> ContentParens {
 }
 
 ///|
-/// Render a single `Delta[Label]` node into printable `Content`.
-fn pretty_print_delta_go(
-  opts : PrettyPrintOptions,
-  delta : Delta[Label],
-  children : Array[Content],
-) -> Content {
+/// Render a `DebugInfo` as `Content` with resizing decisions.
+fn render_repr(opts : PrettyPrintOptions, info : DebugInfo) -> Content {
+  let label = debug_info_shallow(info)
+  let children = debug_info_children(info).map(fn(child) {
+    render_repr(opts, child)
+  })
+  with_resizing(
+    info_size(label),
+    opts.compact_threshold,
+    fn(children) { pretty_print_repr_go(label, children) },
+    children,
+  )
+}
+
+///|
+/// Render a `DebugDelta` as `Content` with resizing decisions.
+fn render_delta(opts : PrettyPrintOptions, delta : DebugDelta) -> Content {
   match delta {
-    Same(label) => pretty_print_repr_go(label, children)
-    Different =>
-      match children {
-        [left, right] =>
-          no_parens(
-            mark_removed(opts, no_wrap(left)) + mark_added(opts, no_wrap(right)),
-          )
-        _ => empty_content()
-      }
-    Extra1 =>
-      match children {
-        [x] => no_parens(mark_removed(opts, no_wrap(x)))
-        _ => empty_content()
-      }
-    Extra2 =>
-      match children {
-        [x] => no_parens(mark_added(opts, no_wrap(x)))
-        _ => empty_content()
-      }
-    Subtree(label) => pretty_print_repr_go(label, children)
+    Same(label, children_delta) => {
+      let children = children_delta.map(fn(child) { render_delta(opts, child) })
+      with_resizing(
+        delta_root_size(delta),
+        opts.compact_threshold,
+        fn(children) { pretty_print_repr_go(label, children) },
+        children,
+      )
+    }
+    Different(left, right) => {
+      let children : Array[Content] = [
+        render_repr(opts, left),
+        render_repr(opts, right),
+      ]
+      with_resizing(
+        0,
+        opts.compact_threshold,
+        fn(children) {
+          match children {
+            [left, right] =>
+              no_parens(
+                mark_removed(opts, no_wrap(left)) +
+                mark_added(opts, no_wrap(right)),
+              )
+            _ => empty_content()
+          }
+        },
+        children,
+      )
+    }
+    Extra1(x) => {
+      let children : Array[Content] = [render_repr(opts, x)]
+      with_resizing(
+        0,
+        opts.compact_threshold,
+        fn(children) {
+          match children {
+            [x] => no_parens(mark_removed(opts, no_wrap(x)))
+            _ => empty_content()
+          }
+        },
+        children,
+      )
+    }
+    Extra2(x) => {
+      let children : Array[Content] = [render_repr(opts, x)]
+      with_resizing(
+        0,
+        opts.compact_threshold,
+        fn(children) {
+          match children {
+            [x] => no_parens(mark_added(opts, no_wrap(x)))
+            _ => empty_content()
+          }
+        },
+        children,
+      )
+    }
   }
 }
 
 ///|
 /// Pretty-print a `Repr` using explicit `PrettyPrintOptions`.
 pub fn pretty_print_repr_with(opts : PrettyPrintOptions, r : Repr) -> String {
-  let tree = prune_repr_tree(opts, un_repr(r))
-  let content = fold_tree(tree, fn(label, children) {
-    with_resizing(
-      label_size(label),
-      opts.compact_threshold,
-      fn(children) { pretty_print_repr_go(label, children) },
-      children,
-    )
-  })
-  print_content(no_wrap(content))
+  let info = prune_repr_info(opts, un_repr(r))
+  print_content(no_wrap(render_repr(opts, info)))
 }
 
 ///|
@@ -337,16 +457,8 @@ pub fn pretty_print_delta_with(
   opts : PrettyPrintOptions,
   d : ReprDelta,
 ) -> String {
-  let tree = prune_delta_tree(opts, un_repr_delta(d))
-  let content = fold_tree(tree, fn(delta, children) {
-    with_resizing(
-      delta_size(delta),
-      opts.compact_threshold,
-      fn(children) { pretty_print_delta_go(opts, delta, children) },
-      children,
-    )
-  })
-  print_content(no_wrap(content))
+  let delta = prune_delta(opts, un_repr_delta(d))
+  print_content(no_wrap(render_delta(opts, delta)))
 }
 
 ///|

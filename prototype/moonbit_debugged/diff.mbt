@@ -1,20 +1,19 @@
 ///|
-/// Per-node diff markers for `Repr` trees.
-enum Delta[T] {
-  Same(T)
-  Different
-  Extra1
-  Extra2
-  Subtree(T)
+/// Tree-shaped diff between two `DebugInfo` values.
+enum DebugDelta {
+  Same(DebugInfo, Array[DebugDelta])
+  Different(DebugInfo, DebugInfo)
+  Extra1(DebugInfo)
+  Extra2(DebugInfo)
 } derive(Eq, Compare)
 
 ///|
-/// A tree-shaped diff of two `Repr` values.
-pub struct ReprDelta(Tree[Delta[Label]]) derive(Eq, Compare)
+/// A diff of two `Repr` values.
+pub struct ReprDelta(DebugDelta) derive(Eq, Compare)
 
 ///|
-/// Extract the underlying tree from a `ReprDelta`.
-fn un_repr_delta(d : ReprDelta) -> Tree[Delta[Label]] {
+/// Extract the underlying delta from a `ReprDelta`.
+fn un_repr_delta(d : ReprDelta) -> DebugDelta {
   d.0
 }
 
@@ -66,19 +65,37 @@ fn relative_error(x : Double, y : Double) -> Double {
 }
 
 ///|
-/// Compare two labels with float tolerance when they are `LDouble`.
-fn label_approx_eq(max_relative_error : Double, x : Label, y : Label) -> Bool {
+/// Compare two node “labels”, with float tolerance for `DoubleLit`.
+fn info_approx_eq(
+  max_relative_error : Double,
+  x : DebugInfo,
+  y : DebugInfo,
+) -> Bool {
   match (x, y) {
-    (LDouble(x1), LDouble(y1)) => relative_error(x1, y1) <= max_relative_error
-    _ => x == y
+    (DoubleLit(x1), DoubleLit(y1)) =>
+      relative_error(x1, y1) <= max_relative_error
+    (IntLit(x1), IntLit(y1)) => x1 == y1
+    (BoolLit(x1), BoolLit(y1)) => x1 == y1
+    (CharLit(x1), CharLit(y1)) => x1 == y1
+    (StringLit(x1), StringLit(y1)) => x1 == y1
+    (Literal(x1), Literal(y1)) => x1 == y1
+    (Omitted, Omitted) => true
+    (Array(_), Array(_)) => true
+    (Record(_), Record(_)) => true
+    (Prop(n1, _), Prop(n2, _)) => n1 == n2
+    (Ctor(n1, _), Ctor(n2, _)) => n1 == n2
+    (Opaque(n1, _), Opaque(n2, _)) => n1 == n2
+    (Assoc(n1, _), Assoc(n2, _)) => n1 == n2
+    (AssocProp(_, _), AssocProp(_, _)) => true
+    _ => false
   }
 }
 
 ///|
 /// Labels that are treated as structural “containers” (may be collapsed in diffs).
-fn label_is_unimportant(label : Label) -> Bool {
-  match label {
-    LAssocProp | LArray | LRecord => true
+fn info_is_unimportant(info : DebugInfo) -> Bool {
+  match info {
+    AssocProp(_, _) | Array(_) | Record(_) => true
     _ => false
   }
 }
@@ -97,63 +114,47 @@ fn[T] tree_all(xs : Array[T], p : (T) -> Bool) -> Bool {
 }
 
 ///|
-/// Core tree diff: returns a `Tree[Delta[Label]]` describing differences.
-fn diff_tree_with(
-  left : Tree[Label],
-  right : Tree[Label],
+/// Core `DebugInfo` diff: returns a `DebugDelta` describing differences.
+fn diff_info_with(
+  left : DebugInfo,
+  right : DebugInfo,
   max_relative_error~ : Double,
-) -> Tree[Delta[Label]] {
-  fn differing(t : Tree[Delta[Label]]) -> Bool {
-    match t {
-      Node(Same(_), _) => false
+) -> DebugDelta {
+  fn differing(d : DebugDelta) -> Bool {
+    match d {
+      Same(_, _) => false
       _ => true
     }
   }
 
-  fn extra(tag : Delta[Label], subtree : Tree[Label]) -> Tree[Delta[Label]] {
-    Node(tag, [tree_map(subtree, fn(label) { Subtree(label) })])
-  }
-
-  fn go(
-    left_node : Tree[Label],
-    right_node : Tree[Label],
-  ) -> Tree[Delta[Label]] {
-    match (left_node, right_node) {
-      (Node(x, xs), Node(y, ys)) =>
-        if label_approx_eq(max_relative_error, x, y) {
-          let xlen = xs.length()
-          let ylen = ys.length()
-          let min_len = if xlen < ylen { xlen } else { ylen }
-          let children : Array[Tree[Delta[Label]]] = for i = 0, acc = [] {
-            if i < min_len {
-              continue i + 1, acc + [go(xs[i], ys[i])]
-            } else {
-              break acc
-            }
-          }
-          let children = if xlen < ylen {
-            children +
-            ys[min_len:ylen].to_array().map(fn(t) { extra(Extra2, t) })
-          } else if xlen > ylen {
-            children +
-            xs[min_len:xlen].to_array().map(fn(t) { extra(Extra1, t) })
-          } else {
-            children
-          }
-          if label_is_unimportant(x) && tree_all(children, differing) {
-            Node(Different, [
-              tree_map(left_node, fn(label) { Subtree(label) }),
-              tree_map(right_node, fn(label) { Subtree(label) }),
-            ])
-          } else {
-            Node(Same(x), children)
-          }
+  fn go(left_node : DebugInfo, right_node : DebugInfo) -> DebugDelta {
+    if info_approx_eq(max_relative_error, left_node, right_node) {
+      let xs = debug_info_children(left_node)
+      let ys = debug_info_children(right_node)
+      let xlen = xs.length()
+      let ylen = ys.length()
+      let min_len = if xlen < ylen { xlen } else { ylen }
+      let children : Array[DebugDelta] = for i = 0, acc = [] {
+        if i < min_len {
+          continue i + 1, acc + [go(xs[i], ys[i])]
         } else {
-          Node(Different, [
-            tree_map(left_node, fn(label) { Subtree(label) }),
-            tree_map(right_node, fn(label) { Subtree(label) }),
-          ])
+          break acc
         }
+      }
+      let children = if xlen < ylen {
+        children + ys[min_len:ylen].to_array().map(fn(t) { Extra2(t) })
+      } else if xlen > ylen {
+        children + xs[min_len:xlen].to_array().map(fn(t) { Extra1(t) })
+      } else {
+        children
+      }
+      if info_is_unimportant(left_node) && tree_all(children, differing) {
+        Different(left_node, right_node)
+      } else {
+        Same(debug_info_shallow(left_node), children)
+      }
+    } else {
+      Different(left_node, right_node)
     }
   }
 
@@ -164,7 +165,7 @@ fn diff_tree_with(
 /// Diff two `Repr` values using explicit `DiffOptions`.
 pub fn diff_repr_with(opts : DiffOptions, x : Repr, y : Repr) -> ReprDelta {
   ReprDelta(
-    diff_tree_with(
+    diff_info_with(
       un_repr(x),
       un_repr(y),
       max_relative_error=opts.max_relative_error,

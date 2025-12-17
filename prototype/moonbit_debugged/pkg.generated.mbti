@@ -69,19 +69,19 @@ type ContentParens
 pub impl Eq for ContentParens
 pub impl Show for ContentParens
 
-type Delta[T]
-pub impl[T : Compare] Compare for Delta[T]
-pub impl[T : Eq] Eq for Delta[T]
+type DebugDelta
+pub impl Compare for DebugDelta
+pub impl Eq for DebugDelta
+
+type DebugInfo
+pub impl Compare for DebugInfo
+pub impl Eq for DebugInfo
 
 pub(all) struct DiffOptions {
   max_relative_error : Double
 }
 pub impl Eq for DiffOptions
 pub impl Show for DiffOptions
-
-type Label
-pub impl Compare for Label
-pub impl Eq for Label
 
 pub(all) struct PrettyPrintOptions {
   max_depth : Int?
@@ -91,21 +91,17 @@ pub(all) struct PrettyPrintOptions {
 pub impl Eq for PrettyPrintOptions
 pub impl Show for PrettyPrintOptions
 
-pub struct Repr(Tree[Label])
+pub struct Repr(DebugInfo)
 #deprecated
-pub fn Repr::inner(Self) -> Tree[Label]
+pub fn Repr::inner(Self) -> DebugInfo
 pub impl Compare for Repr
 pub impl Eq for Repr
 
-pub struct ReprDelta(Tree[Delta[Label]])
+pub struct ReprDelta(DebugDelta)
 #deprecated
-pub fn ReprDelta::inner(Self) -> Tree[Delta[Label]]
+pub fn ReprDelta::inner(Self) -> DebugDelta
 pub impl Compare for ReprDelta
 pub impl Eq for ReprDelta
-
-type Tree[T]
-pub impl[T : Compare] Compare for Tree[T]
-pub impl[T : Eq] Eq for Tree[T]
 
 // Type aliases
 
