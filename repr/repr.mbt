@@ -5,8 +5,12 @@
 /// not directly constructed. Use the smart constructors below.
 ///
 /// Design notes:
-/// - `Record` nodes are represented as `Record([Prop(name, value), ...])`.
-/// - `Assoc` nodes are represented as `Assoc(name, [AssocProp(key, value), ...])`.
+/// - `Record` is encoded as `Record([Prop(name, value), ...])` (not as an array
+///   of `(String, Repr)` pairs) to keep generic traversal/rewrite code simple:
+///   every tree edge is a `Repr`, so `children/with_children`, pruning, and diff
+///   can work uniformly across node kinds.
+/// - `Assoc` is encoded as `Assoc(name, [AssocProp(key, value), ...])`, which is
+///   intended for “map-like” collections.
 /// - `Opaque` is intended for “container-like” wrappers that keep a type/tag but
 ///   otherwise behave structurally through their children.
 pub enum Repr {
