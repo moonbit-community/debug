@@ -1,5 +1,5 @@
 ///|
-pub trait Debug {
+pub(open) trait Debug {
   debug(Self) -> Repr
 }
 

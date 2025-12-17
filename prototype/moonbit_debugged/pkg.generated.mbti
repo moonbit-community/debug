@@ -110,7 +110,7 @@ pub impl[T : Eq] Eq for Tree[T]
 // Type aliases
 
 // Traits
-pub trait Debug {
+pub(open) trait Debug {
   debug(Self) -> Repr
 }
 pub impl Debug for Bool
