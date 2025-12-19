@@ -27,3 +27,27 @@ test "opaque types have a repr" {
   inspect(pretty_print_repr(r), content="<function>")
   inspect(pretty_print_delta(diff_repr(r, r)), content="<function>")
 }
+
+///|
+using @repr {type Repr}
+
+///|
+test "prop bad cases" {
+  let elem = Repr::prop(
+    "x",
+    Repr::arg(
+      "y",
+      Repr::assoc_prop(Repr::string_lit("key"), Repr::bool_lit(true)),
+    ),
+  )
+  let repr = @repr.Repr::array([elem, elem, elem, elem])
+  inspect(
+    pretty_print_repr(repr),
+    content=(
+      #|[ x: y="key": true,
+      #|  x: y="key": true,
+      #|  x: y="key": true,
+      #|  x: y="key": true ]
+    ),
+  )
+}
