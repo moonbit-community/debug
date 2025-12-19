@@ -1,77 +1,16 @@
 ///|
-/// Repr constructors (forwarded to `@repr`).
-pub fn int(x : Int) -> @repr.Repr {
-  @repr.Repr::int(x)
-}
-
-///|
-pub fn double(x : Double) -> @repr.Repr {
-  @repr.Repr::double(x)
-}
-
-///|
-pub fn bool(x : Bool) -> @repr.Repr {
-  @repr.Repr::bool(x)
-}
-
-///|
-pub fn char(x : Char) -> @repr.Repr {
-  @repr.Repr::char(x)
-}
-
-///|
-pub fn string(x : String) -> @repr.Repr {
-  @repr.Repr::string(x)
-}
-
-///|
-pub fn tuple(xs : Array[@repr.Repr]) -> @repr.Repr {
-  @repr.Repr::tuple(xs)
-}
-
-///|
-pub fn unit() -> @repr.Repr {
-  @repr.unit()
-}
-
-///|
-pub fn array(xs : Array[@repr.Repr]) -> @repr.Repr {
-  @repr.Repr::array(xs)
-}
-
-///|
-pub fn ctor(name : String, args : Array[@repr.Repr]) -> @repr.Repr {
-  @repr.ctor(name, args)
-}
-
-///|
-pub fn arg(label : String, value : @repr.Repr) -> @repr.Repr {
-  @repr.arg(label, value)
-}
-
-///|
-pub fn opaque_child(name : String, child : @repr.Repr) -> @repr.Repr {
-  @repr.opaque_child(name, child)
-}
-
-///|
-pub fn opaque_(name : String) -> @repr.Repr {
-  @repr.opaque_(name)
-}
-
-///|
-pub fn opaque_literal(name : String, value : String) -> @repr.Repr {
-  @repr.opaque_literal(name, value)
-}
-
-///|
-pub fn collection(name : String, contents : Array[@repr.Repr]) -> @repr.Repr {
-  @repr.collection(name, contents)
-}
-
-///|
-pub fn assoc(contents : Array[(@repr.Repr, @repr.Repr)]) -> @repr.Repr {
-  @repr.assoc(contents)
+/// Re-export `Repr` type and smart constructors from `@repr`.
+/// Use `Repr::int(x)`, `Repr::string(s)`, etc. to construct values.
+pub using @repr {
+  type Repr,
+  unit,
+  ctor,
+  arg,
+  opaque_child,
+  opaque_,
+  opaque_literal,
+  collection,
+  assoc,
 }
 
 ///|

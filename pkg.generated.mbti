@@ -10,13 +10,7 @@ import(
 // Values
 pub fn arg(String, @repr.Repr) -> @repr.Repr
 
-pub fn array(Array[@repr.Repr]) -> @repr.Repr
-
 pub fn assoc(Array[(@repr.Repr, @repr.Repr)]) -> @repr.Repr
-
-pub fn bool(Bool) -> @repr.Repr
-
-pub fn char(Char) -> @repr.Repr
 
 pub fn collection(String, Array[@repr.Repr]) -> @repr.Repr
 
@@ -37,10 +31,6 @@ pub fn diff_repr(@repr.Repr, @repr.Repr) -> @diff.ReprDelta
 pub fn diff_repr_with(@diff.DiffOptions, @repr.Repr, @repr.Repr) -> @diff.ReprDelta
 
 pub fn[T : Debug] diff_with(@diff.DiffOptions, T, T) -> @diff.ReprDelta
-
-pub fn double(Double) -> @repr.Repr
-
-pub fn int(Int) -> @repr.Repr
 
 pub fn opaque_(String) -> @repr.Repr
 
@@ -66,10 +56,6 @@ pub fn pretty_print_repr_with(@pretty_print.PrettyPrintOptions, @repr.Repr) -> S
 
 pub fn[T : Debug] pretty_print_with(@pretty_print.PrettyPrintOptions, T) -> String
 
-pub fn string(String) -> @repr.Repr
-
-pub fn tuple(Array[@repr.Repr]) -> @repr.Repr
-
 pub fn unit() -> @repr.Repr
 
 // Errors
@@ -77,6 +63,7 @@ pub fn unit() -> @repr.Repr
 // Types and methods
 
 // Type aliases
+pub using @repr {type Repr}
 
 // Traits
 pub(open) trait Debug {

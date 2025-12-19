@@ -6,40 +6,43 @@ fn opts_no_ansi() -> @pp.PrettyPrintOptions {
 ///|
 test "facade: Repr constructors pretty-print as expected" {
   let opts = opts_no_ansi()
-  inspect(pretty_print_repr_with(opts, int(42)), content="42")
-  inspect(pretty_print_repr_with(opts, double(1.5)), content="1.5")
-  inspect(pretty_print_repr_with(opts, bool(true)), content="true")
-  inspect(pretty_print_repr_with(opts, char('x')), content="'x'")
-  inspect(pretty_print_repr_with(opts, string("hi")), content="\"hi\"")
+  inspect(pretty_print_repr_with(opts, Repr::int(42)), content="42")
+  inspect(pretty_print_repr_with(opts, Repr::double(1.5)), content="1.5")
+  inspect(pretty_print_repr_with(opts, Repr::bool(true)), content="true")
+  inspect(pretty_print_repr_with(opts, Repr::char('x')), content="'x'")
+  inspect(pretty_print_repr_with(opts, Repr::string("hi")), content="\"hi\"")
   inspect(pretty_print_repr_with(opts, unit()), content="()")
   inspect(
-    pretty_print_repr_with(opts, tuple([int(1), string("x")])),
+    pretty_print_repr_with(opts, Repr::tuple([Repr::int(1), Repr::string("x")])),
     content="(1, \"x\")",
   )
   inspect(
-    pretty_print_repr_with(opts, array([int(1), int(2)])),
+    pretty_print_repr_with(opts, Repr::array([Repr::int(1), Repr::int(2)])),
     content="[ 1, 2 ]",
   )
   inspect(
     pretty_print_repr_with(
       opts,
-      @repr.Repr::record({ "a": int(1), "b": int(2) }),
+      Repr::record({ "a": Repr::int(1), "b": Repr::int(2) }),
     ),
     content="{ a: 1, b: 2 }",
   )
   inspect(
-    pretty_print_repr_with(opts, ctor("Ok", [string("yes")])),
+    pretty_print_repr_with(opts, ctor("Ok", [Repr::string("yes")])),
     content="Ok(\"yes\")",
   )
   inspect(
     pretty_print_repr_with(
       opts,
-      ctor("A", [arg("x", int(1)), arg("y", string("yes"))]),
+      ctor("A", [arg("x", Repr::int(1)), arg("y", Repr::string("yes"))]),
     ),
     content="A(x=1, y=\"yes\")",
   )
   inspect(
-    pretty_print_repr_with(opts, ctor("B", [arg("x", int(1)), string("s")])),
+    pretty_print_repr_with(
+      opts,
+      ctor("B", [arg("x", Repr::int(1)), Repr::string("s")]),
+    ),
     content="B(x=1, \"s\")",
   )
   inspect(
@@ -51,11 +54,14 @@ test "facade: Repr constructors pretty-print as expected" {
     content="<Int64: 1>",
   )
   inspect(
-    pretty_print_repr_with(opts, collection("Vec", [int(1), int(2)])),
+    pretty_print_repr_with(
+      opts,
+      collection("Vec", [Repr::int(1), Repr::int(2)]),
+    ),
     content="<Vec: [ 1, 2 ]>",
   )
   inspect(
-    pretty_print_repr_with(opts, assoc([(string("a"), int(1))])),
+    pretty_print_repr_with(opts, assoc([(Repr::string("a"), Repr::int(1))])),
     content="{ \"a\": 1 }",
   )
 }
@@ -63,8 +69,8 @@ test "facade: Repr constructors pretty-print as expected" {
 ///|
 test "facade: diff + pretty_print_delta wrappers round-trip" {
   let opts = opts_no_ansi()
-  let x = @repr.Repr::record({ "a": int(1) })
-  let y = @repr.Repr::record({ "a": int(2) })
+  let x = Repr::record({ "a": Repr::int(1) })
+  let y = Repr::record({ "a": Repr::int(2) })
   let d = diff_repr(x, y)
   inspect(pretty_print_delta_with(opts, d), content="{ a: -1 +2 }")
 }
