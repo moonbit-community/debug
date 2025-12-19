@@ -63,7 +63,7 @@ test "facade: Repr constructors pretty-print as expected" {
   inspect(
     pretty_print_repr_with(
       opts,
-      @repr.dict([(Repr::string("a"), Repr::int(1))]),
+      Repr::dict([(Repr::string("a"), Repr::int(1))]),
     ),
     content="{ \"a\": 1 }",
   )

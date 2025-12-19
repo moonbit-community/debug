@@ -42,7 +42,7 @@ using @repr {type Repr}
 test "prop bad cases" {
   let elem = Repr::field(
     "x",
-    Repr::arg("y", Repr::assoc_prop(Repr::string("key"), Repr::bool(true))),
+    Repr::arg("y", Repr::entry(Repr::string("key"), Repr::bool(true))),
   )
   let repr = @repr.Repr::array([elem, elem, elem, elem])
   inspect(

@@ -8,8 +8,6 @@ pub fn collection(String, Array[Repr]) -> Repr
 
 pub fn ctor(String, Array[Repr]) -> Repr
 
-pub fn dict(Array[(Repr, Repr)]) -> Repr
-
 pub fn opaque_(String) -> Repr
 
 pub fn opaque_child(String, Repr) -> Repr
@@ -42,13 +40,13 @@ pub enum Repr {
 }
 pub fn Repr::arg(String, Self) -> Self
 pub fn Repr::array(Array[Self]) -> Self
-pub fn Repr::assoc_prop(Self, Self) -> Self
 pub fn Repr::bool(Bool) -> Self
 pub fn Repr::char(Char) -> Self
 pub fn Repr::children(Self) -> Array[Self]
 pub fn Repr::ctor(String, Array[Self]) -> Self
-pub fn Repr::dict(Array[Self]) -> Self
+pub fn Repr::dict(Array[(Self, Self)]) -> Self
 pub fn Repr::double(Double) -> Self
+pub fn Repr::entry(Self, Self) -> Self
 pub fn Repr::field(String, Self) -> Self
 pub fn Repr::int(Int) -> Self
 pub fn Repr::literal(String) -> Self

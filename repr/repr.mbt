@@ -11,7 +11,7 @@
 ///   can work uniformly across node kinds.
 /// - Labeled constructor arguments are encoded as `Ctor(name, [Arg(label, value), ...])`,
 ///   which supports mixing positional and labeled args.
-/// - `Assoc` is encoded as `Assoc([AssocProp(key, value), ...])`, which is
+/// - `Dict` is encoded as `Dict([Entry(key, value), ...])`, which is
 ///   intended for “map-like” collections (MoonBit map literals like `{ k: v }`).
 /// - `Opaque` is intended for “container-like” wrappers that keep a type/tag but
 ///   otherwise behave structurally through their children.
@@ -45,7 +45,7 @@ pub enum Repr {
   Literal(String)
   /// Association/kv container for map literals.
   Dict(Array[Repr])
-  /// Key/value node. Conventionally appears only under `Assoc`.
+  /// Key/value node. Conventionally appears only under `Dict`.
   Entry(Repr, Repr)
   /// Pruned subtree marker used by depth-limited pretty-printing.
   Omitted
@@ -133,17 +133,19 @@ pub fn Repr::literal(value : String) -> Repr {
 }
 
 ///|
-/// Construct an `Assoc(children)` node from pre-built child `Repr`s.
-///
-/// Prefer `assoc([(k, v), ...])` when you have key/value pairs; it ensures
-/// the `Assoc([AssocProp(..), ...])` convention.
-pub fn Repr::dict(children : Array[Repr]) -> Repr {
-  Dict(children)
+/// Construct a `Dict` node from key/value `Repr` pairs (for map literals).
+pub fn Repr::dict(contents : Array[(Repr, Repr)]) -> Repr {
+  Dict(
+    contents.map(fn(pair) {
+      let (k, v) = pair
+      Repr::entry(k, v)
+    }),
+  )
 }
 
 ///|
-/// Construct an `AssocProp(key, value)` key/value node.
-pub fn Repr::assoc_prop(key : Repr, value : Repr) -> Repr {
+/// Construct an `Entry(key, value)` key/value node for map literals.
+pub fn Repr::entry(key : Repr, value : Repr) -> Repr {
   Entry(key, value)
 }
 
@@ -182,7 +184,7 @@ pub fn Repr::children(self : Repr) -> Array[Repr] {
 /// Notes:
 /// - Leaf nodes ignore `children` and return themselves.
 /// - `Prop` expects exactly one child and falls back to `Prop(name, Omitted)`.
-/// - `AssocProp` expects exactly two children and falls back to `AssocProp(Omitted, Omitted)`.
+/// - `Entry` expects exactly two children and falls back to `Entry(Omitted, Omitted)`.
 pub fn Repr::with_children(self : Repr, children : Array[Repr]) -> Repr {
   match self {
     UnitLit
@@ -284,15 +286,4 @@ pub fn opaque_literal(name : String, value : String) -> Repr {
 /// Convenience helper for “collection-like” reprs: `<name: [ ... ]>`.
 pub fn collection(name : String, contents : Array[Repr]) -> Repr {
   opaque_child(name, Repr::array(contents))
-}
-
-///|
-/// Construct an association/kv `Repr` from key/value `Repr` pairs.
-pub fn dict(contents : Array[(Repr, Repr)]) -> Repr {
-  Repr::dict(
-    contents.map(fn(pair) {
-      let (k, v) = pair
-      Repr::assoc_prop(k, v)
-    }),
-  )
 }

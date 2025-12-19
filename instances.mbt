@@ -59,7 +59,7 @@ pub impl[A : Debug, B : Debug] Debug for (A, B) with debug(self) {
 
 ///|
 pub impl[K : Debug, V : Debug] Debug for Map[K, V] with debug(self) {
-  @repr.dict(
+  Repr::dict(
     self
     .to_array()
     .map(fn(kv) {
