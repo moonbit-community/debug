@@ -93,7 +93,7 @@ fn info_approx_eq(
     (Arg(n1, _), Arg(n2, _)) => n1 == n2
     (Ctor(n1, _), Ctor(n2, _)) => n1 == n2
     (Opaque(n1, _), Opaque(n2, _)) => n1 == n2
-    (Assoc(n1, _), Assoc(n2, _)) => n1 == n2
+    (Assoc(_), Assoc(_)) => true
     (AssocProp(_, _), AssocProp(_, _)) => true
     _ => false
   }

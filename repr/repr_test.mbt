@@ -29,9 +29,9 @@ test "repr: record and assoc builders are structural" {
     Record([Prop("a", IntLit(1)), Prop("b", BoolLit(true))]) => ()
     _ => fail("expected record to lower into Prop children")
   }
-  let m = assoc("Map", [(Repr::string("a"), Repr::int(1))])
+  let m = assoc([(Repr::string("a"), Repr::int(1))])
   match m {
-    Assoc("Map", [AssocProp(StringLit("a"), IntLit(1))]) => ()
+    Assoc([AssocProp(StringLit("a"), IntLit(1))]) => ()
     _ => fail("expected assoc to lower into AssocProp children")
   }
 }

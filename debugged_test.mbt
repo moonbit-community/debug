@@ -2,7 +2,12 @@
 test "pretty_print repr for map" {
   let items : Array[(String, Int)] = [("a", 3), ("b", 6), ("c", 13)]
   let x : Map[String, Int] = Map::from_array(items[:])
-  inspect(pretty_print(x), content="<Map: { \"a\": 3, \"b\": 6, \"c\": 13 }>")
+  inspect(
+    pretty_print(x),
+    content=(
+      #|{ "a": 3, "b": 6, "c": 13 }
+    ),
+  )
 }
 
 ///|
@@ -17,7 +22,9 @@ test "pretty_print delta for map (no ansi)" {
   )
   inspect(
     pretty_print_delta_with(opts, diff(x, y)),
-    content="<Map: { \"a\": 3, \"b\": -6 +9, \"c\": 13 }>",
+    content=(
+      #|{ "a": 3, "b": -6 +9, "c": 13 }
+    ),
   )
 }
 

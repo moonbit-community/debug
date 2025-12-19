@@ -12,7 +12,7 @@ pub fn arg(String, @repr.Repr) -> @repr.Repr
 
 pub fn array(Array[@repr.Repr]) -> @repr.Repr
 
-pub fn assoc(String, Array[(@repr.Repr, @repr.Repr)]) -> @repr.Repr
+pub fn assoc(Array[(@repr.Repr, @repr.Repr)]) -> @repr.Repr
 
 pub fn bool(Bool) -> @repr.Repr
 
@@ -65,8 +65,6 @@ pub fn pretty_print_repr(@repr.Repr) -> String
 pub fn pretty_print_repr_with(@pretty_print.PrettyPrintOptions, @repr.Repr) -> String
 
 pub fn[T : Debug] pretty_print_with(@pretty_print.PrettyPrintOptions, T) -> String
-
-pub fn record(Array[(String, @repr.Repr)]) -> @repr.Repr
 
 pub fn string(String) -> @repr.Repr
 

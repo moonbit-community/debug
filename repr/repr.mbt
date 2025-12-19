@@ -11,8 +11,8 @@
 ///   can work uniformly across node kinds.
 /// - Labeled constructor arguments are encoded as `Ctor(name, [Arg(label, value), ...])`,
 ///   which supports mixing positional and labeled args.
-/// - `Assoc` is encoded as `Assoc(name, [AssocProp(key, value), ...])`, which is
-///   intended for “map-like” collections.
+/// - `Assoc` is encoded as `Assoc([AssocProp(key, value), ...])`, which is
+///   intended for “map-like” collections (MoonBit map literals like `{ k: v }`).
 /// - `Opaque` is intended for “container-like” wrappers that keep a type/tag but
 ///   otherwise behave structurally through their children.
 pub enum Repr {
@@ -43,8 +43,8 @@ pub enum Repr {
   Opaque(String, Array[Repr])
   /// Pre-rendered leaf string (already formatted, no quoting/escaping applied).
   Literal(String)
-  /// Association/kv container with a tag name.
-  Assoc(String, Array[Repr])
+  /// Association/kv container for map literals.
+  Assoc(Array[Repr])
   /// Key/value node. Conventionally appears only under `Assoc`.
   AssocProp(Repr, Repr)
   /// Pruned subtree marker used by depth-limited pretty-printing.
@@ -133,12 +133,12 @@ pub fn Repr::literal(value : String) -> Repr {
 }
 
 ///|
-/// Construct an `Assoc(name, children)` node from pre-built child `Repr`s.
+/// Construct an `Assoc(children)` node from pre-built child `Repr`s.
 ///
-/// Prefer `assoc(name, [(k, v), ...])` when you have key/value pairs; it ensures
-/// the `Assoc(name, [AssocProp(..), ...])` convention.
-pub fn Repr::assoc(name : String, children : Array[Repr]) -> Repr {
-  Assoc(name, children)
+/// Prefer `assoc([(k, v), ...])` when you have key/value pairs; it ensures
+/// the `Assoc([AssocProp(..), ...])` convention.
+pub fn Repr::assoc(children : Array[Repr]) -> Repr {
+  Assoc(children)
 }
 
 ///|
@@ -170,7 +170,7 @@ pub fn Repr::children(self : Repr) -> Array[Repr] {
     | Record(xs)
     | Ctor(_, xs)
     | Opaque(_, xs)
-    | Assoc(_, xs) => xs
+    | Assoc(xs) => xs
     Prop(_, value) | Arg(_, value) => [value]
     AssocProp(key, value) => [key, value]
   }
@@ -198,7 +198,7 @@ pub fn Repr::with_children(self : Repr, children : Array[Repr]) -> Repr {
     Record(_) => Record(children)
     Ctor(name, _) => Ctor(name, children)
     Opaque(name, _) => Opaque(name, children)
-    Assoc(name, _) => Assoc(name, children)
+    Assoc(_) => Assoc(children)
     Prop(name, _) =>
       match children {
         [value] => Prop(name, value)
@@ -237,7 +237,7 @@ pub fn Repr::shallow(self : Repr) -> Repr {
     Record(_) => Record([])
     Ctor(name, _) => Ctor(name, [])
     Opaque(name, _) => Opaque(name, [])
-    Assoc(name, _) => Assoc(name, [])
+    Assoc(_) => Assoc([])
     Prop(name, _) => Prop(name, Omitted)
     Arg(label, _) => Arg(label, Omitted)
     AssocProp(_, _) => AssocProp(Omitted, Omitted)
@@ -288,9 +288,8 @@ pub fn collection(name : String, contents : Array[Repr]) -> Repr {
 
 ///|
 /// Construct an association/kv `Repr` from key/value `Repr` pairs.
-pub fn assoc(name : String, contents : Array[(Repr, Repr)]) -> Repr {
+pub fn assoc(contents : Array[(Repr, Repr)]) -> Repr {
   Repr::assoc(
-    name,
     contents.map(fn(pair) {
       let (k, v) = pair
       Repr::assoc_prop(k, v)

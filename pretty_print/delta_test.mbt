@@ -49,10 +49,10 @@ test "prune: does not count Prop as depth" {
 
 ///|
 test "assoc prop prints `k: v`" {
-  let x = @repr.assoc("Map", [(@repr.Repr::string("a"), @repr.Repr::int(1))])
-  let y = @repr.assoc("Map", [(@repr.Repr::string("a"), @repr.Repr::int(2))])
+  let x = @repr.assoc([(@repr.Repr::string("a"), @repr.Repr::int(1))])
+  let y = @repr.assoc([(@repr.Repr::string("a"), @repr.Repr::int(2))])
   inspect(
     pretty_print_delta_with(print_opts(), @diff.diff_repr(x, y)),
-    content="<Map: { \"a\": -1 +2 }>",
+    content="{ \"a\": -1 +2 }",
   )
 }

@@ -55,8 +55,8 @@ test "facade: Repr constructors pretty-print as expected" {
     content="<Vec: [ 1, 2 ]>",
   )
   inspect(
-    pretty_print_repr_with(opts, assoc("Map", [(string("a"), int(1))])),
-    content="<Map: { \"a\": 1 }>",
+    pretty_print_repr_with(opts, assoc([(string("a"), int(1))])),
+    content="{ \"a\": 1 }",
   )
 }
 

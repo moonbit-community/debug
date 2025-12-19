@@ -1,13 +1,14 @@
 ///|
 test "cmd/main: demo_output is stable" {
   let (a, b) = run_demo()
-  inspect(a, content="<Map: { \"a\": 3, \"b\": 6, \"c\": 13 }>")
-  let esc = "\u001b"
-  let expected = [
-    "<Map:",
-    "{ \"a\": 3,",
-    "  \"b\": " + esc + "[31m-6" + esc + "[0m " + esc + "[32m+9" + esc + "[0m,",
-    "  \"c\": 13 }>",
-  ].join("\n"[:])
-  inspect(b, content=expected)
+  inspect(
+    a,
+    content=(
+      #|{ "a": 3, "b": 6, "c": 13 }
+    ),
+  )
+  inspect(
+    b,
+    content="{ \"a\": 3,\u{a}  \"b\": \u{1b}[31m-6\u{1b}[0m \u{1b}[32m+9\u{1b}[0m,\u{a}  \"c\": 13 }",
+  )
 }

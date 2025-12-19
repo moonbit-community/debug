@@ -70,11 +70,8 @@ pub fn collection(name : String, contents : Array[@repr.Repr]) -> @repr.Repr {
 }
 
 ///|
-pub fn assoc(
-  name : String,
-  contents : Array[(@repr.Repr, @repr.Repr)],
-) -> @repr.Repr {
-  @repr.assoc(name, contents)
+pub fn assoc(contents : Array[(@repr.Repr, @repr.Repr)]) -> @repr.Repr {
+  @repr.assoc(contents)
 }
 
 ///|

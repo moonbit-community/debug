@@ -200,7 +200,7 @@ fn info_size(info : @repr.Repr) -> Int {
     Ctor(name, _) => if name.length() <= 15 { 1 } else { 2 }
     Opaque(name, _) => if name.length() <= 15 { 1 } else { 2 }
     Literal(s) => if s.length() <= 15 { 1 } else { 2 }
-    Assoc(_, _) => 2
+    Assoc(_) => 2
     AssocProp(_, _) => 0
     Omitted => 0
   }
@@ -339,15 +339,7 @@ fn pretty_print_repr_go(
         no_parens(surround("<", ">", body))
       }
     Literal(str) => no_parens(verbatim(str))
-    Assoc(name, _) =>
-      no_parens(
-        surround(
-          "<",
-          ">",
-          verbatim(name + ":") +
-          no_wrap(comma_seq("{ ", " }", children.map(no_wrap))),
-        ),
-      )
+    Assoc(_) => comma_seq("{ ", " }", children.map(no_wrap))
     AssocProp(_, _) =>
       match children {
         [key, val] => no_parens(surround("", ":", no_wrap(key)) + no_wrap(val))
