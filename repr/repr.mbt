@@ -16,6 +16,7 @@
 /// - `Opaque` is intended for “container-like” wrappers that keep a type/tag but
 ///   otherwise behave structurally through their children.
 pub enum Repr {
+  UnitLit
   /// Integer literal leaf.
   IntLit(Int)
   /// Floating-point literal leaf.
@@ -159,7 +160,8 @@ pub fn Repr::omitted() -> Repr {
 /// Child nodes of a `Repr` node.
 pub fn Repr::children(self : Repr) -> Array[Repr] {
   match self {
-    IntLit(_)
+    UnitLit
+    | IntLit(_)
     | DoubleLit(_)
     | BoolLit(_)
     | CharLit(_)
@@ -186,7 +188,8 @@ pub fn Repr::children(self : Repr) -> Array[Repr] {
 /// - `AssocProp` expects exactly two children and falls back to `AssocProp(Omitted, Omitted)`.
 pub fn Repr::with_children(self : Repr, children : Array[Repr]) -> Repr {
   match self {
-    IntLit(_)
+    UnitLit
+    | IntLit(_)
     | DoubleLit(_)
     | BoolLit(_)
     | CharLit(_)
@@ -224,7 +227,8 @@ pub fn Repr::with_children(self : Repr, children : Array[Repr]) -> Repr {
 /// children are rendered separately.
 pub fn Repr::shallow(self : Repr) -> Repr {
   match self {
-    IntLit(_)
+    UnitLit
+    | IntLit(_)
     | DoubleLit(_)
     | BoolLit(_)
     | CharLit(_)
@@ -246,7 +250,7 @@ pub fn Repr::shallow(self : Repr) -> Repr {
 ///|
 /// Construct a unit `Repr` (`()`).
 pub fn unit() -> Repr {
-  Repr::tuple([])
+  Repr::UnitLit
 }
 
 ///|

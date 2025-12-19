@@ -186,6 +186,7 @@ fn prune_delta(
 /// Heuristic “size” of a node for compact-vs-multiline decisions.
 fn info_size(info : @repr.Repr) -> Int {
   match info {
+    UnitLit => 1
     IntLit(_) => 1
     DoubleLit(_) => 1
     BoolLit(_) => 1
@@ -307,6 +308,7 @@ fn pretty_print_repr_go(
   children : Array[Content],
 ) -> Content {
   match label {
+    UnitLit => comma_seq("(", ")", [])
     IntLit(x) => leaf(x, needs_parens=x < 0)
     DoubleLit(x) => {
       let needs_parens = 1.0 / x < 0.0
