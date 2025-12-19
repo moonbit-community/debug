@@ -64,6 +64,30 @@ match r {
 }
 ```
 
+```mbt test
+let r : Repr = Repr::record({
+  "user": Repr::string("alice"),
+  "age": Repr::int(30),
+})
+match r {
+  Repr::Record([Repr::Prop("user", Repr::StringLit("alice")), _]) => ()
+  _ => fail("unexpected Repr shape for record")
+}
+match Repr::to_json(r) {
+  Json::Object(map) => {
+    match map.get("user") {
+      Some(Json::String("alice")) => ()
+      _ => fail("expected user to be \"alice\"")
+    }
+    match map.get("age") {
+      Some(Json::Number(x, ..)) => assert_eq(x, 30.0)
+      _ => fail("expected age to be number 30")
+    }
+  }
+  _ => fail("expected Json object")
+}
+```
+
 ## Tuples (and unit)
 
 Tuples are represented as:

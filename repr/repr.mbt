@@ -233,6 +233,126 @@ pub fn Repr::traverse(self : Repr, f : (Repr) -> Repr) -> Repr {
 }
 
 ///|
+/// Fold a `Repr` tree into a single value.
+///
+/// `f` runs after children are folded (post-order) and receives their results.
+pub fn[T] Repr::fold(self : Repr, f : (Repr, Array[T]) -> T) -> T {
+  fn go(node : Repr) -> T {
+    let children = Repr::children(node)
+    let folded = children.map(fn(child) { go(child) })
+    f(node, folded)
+  }
+
+  go(self)
+}
+
+///|
+/// Convert a `Repr` tree into a JSON value.
+///
+/// Records become JSON objects, arrays/tuples become JSON arrays, and
+/// constructors/opaque nodes are encoded with `$tag`/`$args` and
+/// `$opaque`/`$value` objects. Associations become JSON objects when keys are
+/// strings, otherwise they fall back to arrays of `[key, value]` pairs.
+pub fn Repr::to_json(self : Repr) -> Json {
+  fn merge_object_entries(children : Array[Json]) -> Map[String, Json]? {
+    let pairs : Array[(String, Json)] = []
+    for child in children {
+      match child {
+        Json::Object(map) =>
+          for pair in map.to_array() {
+            pairs.push(pair)
+          }
+        _ => return None
+      }
+    }
+    Some(Map::from_array(pairs[:]))
+  }
+
+  fn assoc_entries(children : Array[Json]) -> Map[String, Json]? {
+    let pairs : Array[(String, Json)] = []
+    for child in children {
+      match child {
+        Json::Array(items) =>
+          if items.length() == 2 {
+            match items[0] {
+              Json::String(key) => pairs.push((key, items[1]))
+              _ => return None
+            }
+          } else {
+            return None
+          }
+        _ => return None
+      }
+    }
+    Some(Map::from_array(pairs[:]))
+  }
+
+  fn object_single(key : String, value : Json) -> Json {
+    let pairs : Array[(String, Json)] = [(key, value)]
+    Json::object(Map::from_array(pairs[:]))
+  }
+
+  fn object_label_value(label : String, value : Json) -> Json {
+    let pairs : Array[(String, Json)] = [
+      ("$label", Json::string(label)),
+      ("$value", value),
+    ]
+    Json::object(Map::from_array(pairs[:]))
+  }
+
+  Repr::fold(self, fn(node, children) {
+    match node {
+      UnitLit => Json::null()
+      IntLit(x) => Json::number(x.to_double(), repr=repr(x))
+      DoubleLit(x) => Json::number(x)
+      BoolLit(x) => Json::boolean(x)
+      CharLit(c) => Json::string("\{c}")
+      StringLit(s) => Json::string(s)
+      Literal(s) => Json::string(s)
+      Tuple(_) | Array(_) => Json::array(children)
+      Record(_) =>
+        match merge_object_entries(children) {
+          Some(map) => Json::object(map)
+          None => Json::array(children)
+        }
+      Prop(name, _) =>
+        match children {
+          [value] => object_single(name, value)
+          _ => object_single(name, Json::null())
+        }
+      Arg(label, _) =>
+        match children {
+          [value] => object_label_value(label, value)
+          _ => object_label_value(label, Json::null())
+        }
+      Ctor(name, _) =>
+        Json::object(
+          Map::from_array(
+            [("$tag", Json::string(name)), ("$args", Json::array(children))][:],
+          ),
+        )
+      Opaque(name, _) =>
+        Json::object(
+          Map::from_array(
+            [("$opaque", Json::string(name)), ("$value", Json::array(children))][:],
+          ),
+        )
+      Assoc(_) =>
+        match assoc_entries(children) {
+          Some(map) => Json::object(map)
+          None => Json::array(children)
+        }
+      AssocProp(_, _) =>
+        match children {
+          [key, value] => Json::array([key, value])
+          _ => Json::array([])
+        }
+      Omitted => Json::null()
+    }
+  })
+}
+
+///|
 /// A shallow copy of `self` containing only its “label” (children replaced).
 ///
 /// This is used by diff/pretty-print when the structure is preserved but

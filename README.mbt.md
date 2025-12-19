@@ -84,3 +84,20 @@ let opts = pretty_print_options(
 )
 inspect(pretty_print_delta_with(opts, diff(1, 2)), content="-1 +2")
 ```
+
+```mbt test
+let r : Repr = Repr::record({
+  "user": Repr::string("alice"),
+  "password": Repr::string("secret"),
+})
+let redacted = Repr::traverse(r, fn(node) {
+  match node {
+    Prop("password", _) => Repr::prop("password", Repr::omitted())
+    _ => node
+  }
+})
+inspect(
+  pretty_print_repr(redacted),
+  content="{ user: \"alice\", password: ... }",
+)
+```

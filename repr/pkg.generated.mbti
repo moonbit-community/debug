@@ -49,6 +49,7 @@ pub fn Repr::char(Char) -> Self
 pub fn Repr::children(Self) -> Array[Self]
 pub fn Repr::ctor(String, Array[Self]) -> Self
 pub fn Repr::double(Double) -> Self
+pub fn[T] Repr::fold(Self, (Self, Array[T]) -> T) -> T
 pub fn Repr::int(Int) -> Self
 pub fn Repr::literal(String) -> Self
 pub fn Repr::omitted() -> Self
@@ -57,6 +58,7 @@ pub fn Repr::prop(String, Self) -> Self
 pub fn Repr::record(Map[String, Self]) -> Self
 pub fn Repr::shallow(Self) -> Self
 pub fn Repr::string(String) -> Self
+pub fn Repr::to_json(Self) -> Json
 pub fn Repr::traverse(Self, (Self) -> Self) -> Self
 pub fn Repr::tuple(Array[Self]) -> Self
 pub fn Repr::with_children(Self, Array[Self]) -> Self
