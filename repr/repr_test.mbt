@@ -42,14 +42,15 @@ test "repr: traverse can hide fields" {
     "user": Repr::string("alice"),
     "password": Repr::string("secret"),
   })
-  let redacted = r.traverse( node =>{
+  let redacted = r.traverse(fn(node) {
     match node {
-      Prop("password", _) => Repr::prop("password", Repr::omitted())
+      Field("password", _) => Repr::field("password", Repr::omitted())
       _ => node
     }
   })
   match redacted {
-    Record([Prop("user", StringLit("alice")), Prop("password", Omitted)]) => ()
+    Record([Field("user", StringLit("alice")), Field("password", Omitted)]) =>
+      ()
     _ => fail("expected traverse to omit password")
   }
 }
