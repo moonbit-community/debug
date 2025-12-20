@@ -44,7 +44,6 @@ pub fn Repr::children(Self) -> Array[Self]
 pub fn Repr::ctor(String, Array[Self]) -> Self
 pub fn Repr::dict(Array[(Self, Self)]) -> Self
 pub fn Repr::double(Double) -> Self
-pub fn Repr::entry(Self, Self) -> Self
 pub fn Repr::field(String, Self) -> Self
 pub fn Repr::float(Float) -> Self
 pub fn Repr::int(Int) -> Self

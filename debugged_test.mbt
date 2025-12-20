@@ -37,21 +37,3 @@ test "opaque types have a repr" {
 
 ///|
 using @repr {type Repr}
-
-///|
-test "prop bad cases" {
-  let elem = Repr::field(
-    "x",
-    Repr::labeled("y", Repr::entry(Repr::string("key"), Repr::bool(true))),
-  )
-  let repr = @repr.Repr::array([elem, elem, elem, elem])
-  inspect(
-    pretty_print_repr(repr),
-    content=(
-      #|[ x: y="key": true,
-      #|  x: y="key": true,
-      #|  x: y="key": true,
-      #|  x: y="key": true ]
-    ),
-  )
-}

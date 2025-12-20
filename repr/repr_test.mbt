@@ -15,11 +15,6 @@ test "repr: with_children falls back for Prop and AssocProp" {
     Field("k", Omitted) => ()
     _ => fail("expected Prop(_, Omitted) fallback")
   }
-  let ap = Repr::entry(Repr::string("k"), Repr::int(1))
-  match ap.with_children([Repr::int(0)]) {
-    Entry(Omitted, Omitted) => ()
-    _ => fail("expected AssocProp(Omitted, Omitted) fallback")
-  }
 }
 
 ///|

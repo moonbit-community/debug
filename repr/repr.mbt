@@ -221,7 +221,7 @@ pub fn Repr::dict(contents : Array[(Repr, Repr)]) -> Repr {
 
 ///|
 /// Construct an `Entry(key, value)` key/value node for map literals.
-pub fn Repr::entry(key : Repr, value : Repr) -> Repr {
+fn Repr::entry(key : Repr, value : Repr) -> Repr {
   Entry(key, value)
 }
 
