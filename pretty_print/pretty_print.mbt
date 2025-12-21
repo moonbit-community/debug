@@ -24,27 +24,6 @@ fn info_adds_depth(info : @repr.Repr) -> Bool {
 }
 
 ///|
-/// Child nodes of a `Repr` node.
-fn info_children(info : @repr.Repr) -> Array[@repr.Repr] {
-  info.children()
-}
-
-///|
-/// Rebuild a `Repr` node with a new child list (payload is preserved).
-fn info_with_children(
-  info : @repr.Repr,
-  children : Array[@repr.Repr],
-) -> @repr.Repr {
-  info.with_children(children)
-}
-
-///|
-/// A shallow copy of `info` containing only its “label” (children replaced).
-fn info_shallow(info : @repr.Repr) -> @repr.Repr {
-  info.shallow()
-}
-
-///|
 /// Prune a `Repr` value to a given depth (replacing pruned subtrees).
 fn prune_info(
   info : @repr.Repr,
@@ -61,12 +40,12 @@ fn prune_info(
   }
 
   fn go(d : Int, node : @repr.Repr) -> @repr.Repr {
-    let children = info_children(node)
+    let children = node.children()
     if d <= 0 {
       if children.is_empty() {
         node
       } else if !counts(node) {
-        info_with_children(node, children.map(fn(child) { go(d, child) }))
+        node.with_children(children.map(fn(child) { go(d, child) }))
       } else {
         replacement
       }
@@ -74,10 +53,7 @@ fn prune_info(
       node
     } else {
       let next_depth = if counts(node) { d - 1 } else { d }
-      info_with_children(
-        node,
-        children.map(fn(child) { go(next_depth, child) }),
-      )
+      node.with_children(children.map(fn(child) { go(next_depth, child) }))
     }
   }
 
@@ -434,8 +410,8 @@ fn mark_removed(opts : PrettyPrintOptions, x : ContentParens) -> ContentParens {
 ///|
 /// Render a `Repr` as `Content` with resizing decisions.
 fn render_repr(opts : PrettyPrintOptions, info : @repr.Repr) -> Content {
-  let label = info_shallow(info)
-  let children = info_children(info).map(fn(child) { render_repr(opts, child) })
+  let label = info.shallow()
+  let children = info.children().map(fn(child) { render_repr(opts, child) })
   with_resizing(
     info_size(label),
     opts.compact_threshold,
