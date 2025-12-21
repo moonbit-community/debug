@@ -112,28 +112,14 @@ fn delta_root_size(delta : @diff.DebugDelta) -> Int {
 }
 
 ///|
-/// Total “size” of a node (root + children).
-fn measure(root_size : Int, children : Array[Content]) -> Int {
-  let mut total = root_size
-  for c in children {
-    total += c.size
-  }
-  total
-}
-
-///|
 /// Render compactly when the measured size stays under `threshold`.
 fn with_resizing(
   root_size : Int,
   threshold : Int,
-  f : (Array[Content]) -> Content,
-  children : Array[Content],
-) -> Content {
-  if measure(root_size, children) <= threshold {
-    compact(f(children))
-  } else {
-    f(children)
-  }
+  f : (Array[@printer.Content]) -> @printer.Content,
+  children : Array[@printer.Content],
+) -> @printer.Content {
+  @printer.with_resizing(root_size, threshold, f, children)
 }
 
 ///|
@@ -201,84 +187,95 @@ fn pretty_print_label(name : String) -> String {
 /// Render a single `Repr` node (label + rendered children) into `Content`.
 fn pretty_print_repr_go(
   label : @repr.Repr,
-  children : Array[Content],
-) -> Content {
+  children : Array[@printer.Content],
+) -> @printer.Content {
   match label {
-    UnitLit => comma_seq("(", ")", [])
-    Int16Lit(x) => leaf(x, needs_parens=x < 0)
-    IntLit(x) => leaf(x, needs_parens=x < 0)
-    Int64Lit(x) => leaf_with_suffix(x, "L", needs_parens=x < 0L)
-    UInt16Lit(x) => leaf(x)
-    UIntLit(x) => leaf_with_suffix(x, "U")
-    UInt64Lit(x) => leaf_with_suffix(x, "UL")
+    UnitLit => @printer.comma_seq("(", ")", [])
+    Int16Lit(x) => @printer.leaf(x, needs_parens=x < 0)
+    IntLit(x) => @printer.leaf(x, needs_parens=x < 0)
+    Int64Lit(x) => @printer.leaf_with_suffix(x, "L", needs_parens=x < 0L)
+    UInt16Lit(x) => @printer.leaf(x)
+    UIntLit(x) => @printer.leaf_with_suffix(x, "U")
+    UInt64Lit(x) => @printer.leaf_with_suffix(x, "UL")
     DoubleLit(x) => {
       let needs_parens = 1.0 / x < 0.0
-      leaf(x, needs_parens~)
+      @printer.leaf(x, needs_parens~)
     }
     FloatLit(x) => {
       let needs_parens : Bool = (1.0 : Float) / x < (0.0 : Float)
-      leaf(x, needs_parens~)
+      @printer.leaf(x, needs_parens~)
     }
-    BigIntLit(x) => leaf_with_suffix(x, "N", needs_parens=x < 0N)
-    BoolLit(x) => leaf(x)
-    CharLit(x) => leaf(x)
-    StringLit(x) => no_parens(verbatim(quote_string_literal(x)))
-    Tuple(_) => comma_seq("(", ")", children.map(no_wrap))
+    BigIntLit(x) => @printer.leaf_with_suffix(x, "N", needs_parens=x < 0N)
+    BoolLit(x) => @printer.leaf(x)
+    CharLit(x) => @printer.leaf(x)
+    StringLit(x) =>
+      @printer.no_parens(@printer.verbatim(quote_string_literal(x)))
+    Tuple(_) => @printer.comma_seq("(", ")", children.map(x => x.no_wrap()))
     Enum(name, _) =>
       match children {
-        [] => no_parens(verbatim(name))
+        [] => @printer.no_parens(@printer.verbatim(name))
         _ =>
           if name == "Tuple" {
-            comma_seq("(", ")", children.map(no_wrap))
+            @printer.comma_seq("(", ")", children.map(x => x.no_wrap()))
           } else {
-            comma_seq(name + "(", ")", children.map(no_wrap))
+            @printer.comma_seq(name + "(", ")", children.map(x => x.no_wrap()))
           }
       }
-    Array(_) => comma_seq("[ ", " ]", children.map(no_wrap))
-    Record(_) => comma_seq("{ ", " }", children.map(no_wrap))
+    Array(_) => @printer.comma_seq("[ ", " ]", children.map(x => x.no_wrap()))
+    Record(_) => @printer.comma_seq("{ ", " }", children.map(x => x.no_wrap()))
     Opaque(name, _) =>
       if children.is_empty() {
-        no_parens(surround("<", ">", verbatim(name)))
+        @printer.no_parens(@printer.surround("<", ">", @printer.verbatim(name)))
       } else {
-        let body = verbatim(name + ":") +
-          indent("  ", no_wrap(comma_seq("", "", children.map(no_wrap))))
-        no_parens(surround("<", ">", body))
+        let body = @printer.verbatim(name + ":") +
+          @printer.indent(
+            "  ",
+            @printer.comma_seq("", "", children.map(x => x.no_wrap())).no_wrap(),
+          )
+        @printer.no_parens(@printer.surround("<", ">", body))
       }
-    Literal(str) => no_parens(verbatim(str))
-    Map(_) => comma_seq("{ ", " }", children.map(no_wrap))
+    Literal(str) => @printer.no_parens(@printer.verbatim(str))
+    Map(_) => @printer.comma_seq("{ ", " }", children.map(x => x.no_wrap()))
     MapEntry(_, _) =>
       match children {
-        [key, val] => no_parens(surround("", ":", no_wrap(key)) + no_wrap(val))
-        _ => empty_content()
+        [key, val] =>
+          @printer.no_parens(
+            @printer.surround("", ":", key.no_wrap()) + val.no_wrap(),
+          )
+        _ => @printer.empty_content()
       }
     EnumLabeledArg(name, _) =>
       match children {
         [val] =>
           match val.lines {
-            [] => empty_content()
+            [] => @printer.empty_content()
             [first] =>
-              no_parens({ size: 1 + val.size, lines: [name + "=" + first] })
+              @printer.no_parens(
+                @printer.content_parens(1 + val.size, [name + "=" + first]),
+              )
             [first, ..] => {
               let n = val.lines.length()
               let rest = if n <= 1 { [] } else { val.lines[1:n].to_array() }
-              no_parens({
-                size: 1 + val.size,
-                lines: [name + "=" + first] + rest,
-              })
+              @printer.no_parens(
+                @printer.content_parens(
+                  1 + val.size,
+                  [name + "=" + first] + rest,
+                ),
+              )
             }
           }
-        _ => empty_content()
+        _ => @printer.empty_content()
       }
     RecordField(name, _) =>
       match children {
         [val] =>
-          no_parens(
-            verbatim(pretty_print_label(name) + ":") +
-            indent("  ", no_wrap(val)),
+          @printer.no_parens(
+            @printer.verbatim(pretty_print_label(name) + ":") +
+            @printer.indent("  ", val.no_wrap()),
           )
-        _ => empty_content()
+        _ => @printer.empty_content()
       }
-    Omitted => parens(verbatim("..."))
+    Omitted => @printer.parens(@printer.verbatim("..."))
   }
 }
 
@@ -302,27 +299,36 @@ fn ansi_reset() -> String {
 
 ///|
 /// Mark added content with `+` (and optionally ANSI color).
-fn mark_added(opts : PrettyPrintOptions, x : ContentParens) -> ContentParens {
+fn mark_added(
+  opts : PrettyPrintOptions,
+  x : @printer.ContentParens,
+) -> @printer.ContentParens {
   if opts.use_ansi {
-    surround(ansi_green() + "+", ansi_reset(), x)
+    @printer.surround(ansi_green() + "+", ansi_reset(), x)
   } else {
-    surround("+", "", x)
+    @printer.surround("+", "", x)
   }
 }
 
 ///|
 /// Mark removed content with `-` (and optionally ANSI color).
-fn mark_removed(opts : PrettyPrintOptions, x : ContentParens) -> ContentParens {
+fn mark_removed(
+  opts : PrettyPrintOptions,
+  x : @printer.ContentParens,
+) -> @printer.ContentParens {
   if opts.use_ansi {
-    surround(ansi_red() + "-", ansi_reset(), x)
+    @printer.surround(ansi_red() + "-", ansi_reset(), x)
   } else {
-    surround("-", "", x)
+    @printer.surround("-", "", x)
   }
 }
 
 ///|
 /// Render a `Repr` as `Content` with resizing decisions.
-fn render_repr(opts : PrettyPrintOptions, info : @repr.Repr) -> Content {
+fn render_repr(
+  opts : PrettyPrintOptions,
+  info : @repr.Repr,
+) -> @printer.Content {
   let label = info.shallow()
   let children = info.children().map(fn(child) { render_repr(opts, child) })
   with_resizing(
@@ -335,7 +341,10 @@ fn render_repr(opts : PrettyPrintOptions, info : @repr.Repr) -> Content {
 
 ///|
 /// Render a `DebugDelta` as `Content` with resizing decisions.
-fn render_delta(opts : PrettyPrintOptions, delta : @diff.DebugDelta) -> Content {
+fn render_delta(
+  opts : PrettyPrintOptions,
+  delta : @diff.DebugDelta,
+) -> @printer.Content {
   match delta {
     Same(label, children_delta) => {
       let children = children_delta.map(fn(child) { render_delta(opts, child) })
@@ -347,7 +356,7 @@ fn render_delta(opts : PrettyPrintOptions, delta : @diff.DebugDelta) -> Content 
       )
     }
     Different(left, right) => {
-      let children : Array[Content] = [
+      let children : Array[@printer.Content] = [
         render_repr(opts, left),
         render_repr(opts, right),
       ]
@@ -357,39 +366,39 @@ fn render_delta(opts : PrettyPrintOptions, delta : @diff.DebugDelta) -> Content 
         fn(children) {
           match children {
             [left, right] =>
-              no_parens(
-                mark_removed(opts, no_wrap(left)) +
-                mark_added(opts, no_wrap(right)),
+              @printer.no_parens(
+                mark_removed(opts, left.no_wrap()) +
+                mark_added(opts, right.no_wrap()),
               )
-            _ => empty_content()
+            _ => @printer.empty_content()
           }
         },
         children,
       )
     }
     Extra1(x) => {
-      let children : Array[Content] = [render_repr(opts, x)]
+      let children : Array[@printer.Content] = [render_repr(opts, x)]
       with_resizing(
         0,
         opts.compact_threshold,
         fn(children) {
           match children {
-            [x] => no_parens(mark_removed(opts, no_wrap(x)))
-            _ => empty_content()
+            [x] => @printer.no_parens(mark_removed(opts, x.no_wrap()))
+            _ => @printer.empty_content()
           }
         },
         children,
       )
     }
     Extra2(x) => {
-      let children : Array[Content] = [render_repr(opts, x)]
+      let children : Array[@printer.Content] = [render_repr(opts, x)]
       with_resizing(
         0,
         opts.compact_threshold,
         fn(children) {
           match children {
-            [x] => no_parens(mark_added(opts, no_wrap(x)))
-            _ => empty_content()
+            [x] => @printer.no_parens(mark_added(opts, x.no_wrap()))
+            _ => @printer.empty_content()
           }
         },
         children,
@@ -405,7 +414,7 @@ pub fn pretty_print_repr_with(
   r : @repr.Repr,
 ) -> String {
   let info = prune_repr_info(opts, r)
-  print_content(no_wrap(render_repr(opts, info)))
+  @printer.print_content(render_repr(opts, info).no_wrap())
 }
 
 ///|
@@ -421,7 +430,7 @@ pub fn pretty_print_delta_with(
   d : @diff.ReprDelta,
 ) -> String {
   let delta = prune_delta(opts, d.delta())
-  print_content(no_wrap(render_delta(opts, delta)))
+  @printer.print_content(render_delta(opts, delta).no_wrap())
 }
 
 ///|

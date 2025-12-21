@@ -20,14 +20,6 @@ pub fn pretty_print_repr_with(PrettyPrintOptions, @repr.Repr) -> String
 // Errors
 
 // Types and methods
-type Content
-pub impl Eq for Content
-pub impl Show for Content
-
-type ContentParens
-pub impl Eq for ContentParens
-pub impl Show for ContentParens
-
 pub(all) struct PrettyPrintOptions {
   max_depth : Int?
   compact_threshold : Int
