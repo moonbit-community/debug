@@ -9,7 +9,11 @@ pub fn Repr::info_adds_depth(info : Repr) -> Bool {
 
 ///|
 /// Prune a `Repr` value to a given depth (replacing pruned subtrees).
-pub fn Repr::prune_info(info : Repr, replacement~ : Repr = Repr::omitted(), depth~ : Int) -> Repr {
+pub fn Repr::prune_info(
+  info : Repr,
+  replacement? : Repr = Repr::omitted(),
+  depth~ : Int,
+) -> Repr {
   fn go(d : Int, node : Repr) -> Repr {
     let children = node.children()
     if d <= 0 {
