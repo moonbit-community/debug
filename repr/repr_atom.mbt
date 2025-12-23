@@ -2,39 +2,39 @@
 /// Smart constructors for `Repr` (constructible outside the package).
 
 ///|
-/// Construct an `Int16Lit` leaf.
+/// Construct a `Fixnum` leaf from an Int16.
 pub fn Repr::int16(x : Int16) -> Repr {
-  Int16Lit(x)
+  Fixnum(x.to_string())
 }
 
 ///|
-/// Construct an `IntLit` leaf.
+/// Construct a `Fixnum` leaf from an Int.
 pub fn Repr::int(x : Int) -> Repr {
-  IntLit(x)
+  Fixnum(x.to_string())
 }
 
 ///|
-/// Construct an `Int64Lit` leaf.
+/// Construct a `Fixnum` leaf from an Int64.
 pub fn Repr::int64(x : Int64) -> Repr {
-  Int64Lit(x)
+  Fixnum(x.to_string() + "L")
 }
 
 ///|
-/// Construct a `UInt16Lit` leaf.
+/// Construct a `Fixnum` leaf from a UInt16.
 pub fn Repr::uint16(x : UInt16) -> Repr {
-  UInt16Lit(x)
+  Fixnum(x.to_string())
 }
 
 ///|
-/// Construct a `UIntLit` leaf.
+/// Construct a `Fixnum` leaf from a UInt.
 pub fn Repr::uint(x : UInt) -> Repr {
-  UIntLit(x)
+  Fixnum(x.to_string() + "U")
 }
 
 ///|
-/// Construct a `UInt64Lit` leaf.
+/// Construct a `Fixnum` leaf from a UInt64.
 pub fn Repr::uint64(x : UInt64) -> Repr {
-  UInt64Lit(x)
+  Fixnum(x.to_string() + "UL")
 }
 
 ///|

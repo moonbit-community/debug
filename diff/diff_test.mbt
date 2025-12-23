@@ -13,7 +13,7 @@ test "diff: arrays keep per-element when some children same" {
   let x = @repr.Repr::array([@repr.Repr::int(1), @repr.Repr::int(2)])
   let y = @repr.Repr::array([@repr.Repr::int(1), @repr.Repr::int(3)])
   match diff_repr(x, y).delta() {
-    Same(Array([]), [Same(IntLit(1), []), _]) => ()
+    Same(Array([]), [Same(Fixnum("1"), []), _]) => ()
     _ => fail("expected Same(Array, children...)")
   }
 }
@@ -23,7 +23,7 @@ test "diff: extra elements are marked" {
   let x = @repr.Repr::array([@repr.Repr::int(1)])
   let y = @repr.Repr::array([@repr.Repr::int(1), @repr.Repr::int(2)])
   match diff_repr(x, y).delta() {
-    Same(Array([]), [Same(IntLit(1), []), Extra2(IntLit(2))]) => ()
+    Same(Array([]), [Same(Fixnum("1"), []), Extra2(Fixnum("2"))]) => ()
     _ => fail("expected Same(Array, [Same 1, Extra2 2])")
   }
 }
@@ -43,8 +43,8 @@ test "diff: tolerant doubles compare same" {
 test "Repr is readonly but constructible via smart ctors" {
   let info = @repr.Repr::ctor("X", [(None, @repr.Repr::int(1))])
   match info {
-    Enum("X", [IntLit(1)]) => ()
-    _ => fail("expected Enum(\"X\", [IntLit(1)])")
+    Enum("X", [Fixnum("1")]) => ()
+    _ => fail("expected Enum(\"X\", [Fixnum(\"1\")])")
   }
   assert_eq(info.children().length(), 1)
   match info.shallow() {

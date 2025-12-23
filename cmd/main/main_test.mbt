@@ -9,6 +9,6 @@ test "cmd/main: demo_output is stable" {
   )
   inspect(
     b,
-    content="{ \"a\": 3,\u{a}  \"b\": \u{1b}[31m-6\u{1b}[0m \u{1b}[32m+9\u{1b}[0m,\u{a}  \"c\": 13 }",
+    content="{ \"a\": 3, \"b\": \u{1b}[31m-6\u{1b}[0m \u{1b}[32m+9\u{1b}[0m, \"c\": 13 }",
   )
 }

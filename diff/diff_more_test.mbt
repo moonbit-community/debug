@@ -3,7 +3,7 @@ test "diff: extra elements on left are marked Extra1" {
   let x = @repr.Repr::array([@repr.Repr::int(1), @repr.Repr::int(2)])
   let y = @repr.Repr::array([@repr.Repr::int(1)])
   match diff_repr(x, y).delta() {
-    Same(Array([]), [Same(IntLit(1), []), Extra1(IntLit(2))]) => ()
+    Same(Array([]), [Same(Fixnum("1"), []), Extra1(Fixnum("2"))]) => ()
     _ => fail("expected Same(Array, [Same 1, Extra1 2])")
   }
 }
@@ -29,7 +29,7 @@ test "diff: mismatched label kinds are Different" {
   let x = @repr.Repr::int(1)
   let y = @repr.Repr::string("1")
   match diff_repr(x, y).delta() {
-    Different(IntLit(1), StringLit("1")) => ()
-    _ => fail("expected Different(IntLit, StringLit)")
+    Different(Fixnum("1"), StringLit("1")) => ()
+    _ => fail("expected Different(Fixnum, StringLit)")
   }
 }

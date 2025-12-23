@@ -80,7 +80,7 @@ fn info_approx_eq(
   match (x, y) {
     (DoubleLit(x1), DoubleLit(y1)) =>
       relative_error(x1, y1) <= max_relative_error
-    (IntLit(x1), IntLit(y1)) => x1 == y1
+    (Fixnum(x1), Fixnum(y1)) => x1 == y1
     (BoolLit(x1), BoolLit(y1)) => x1 == y1
     (CharLit(x1), CharLit(y1)) => x1 == y1
     (StringLit(x1), StringLit(y1)) => x1 == y1

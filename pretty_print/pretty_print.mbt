@@ -76,12 +76,7 @@ fn prune_delta(
 fn info_size(info : @repr.Repr) -> Int {
   match info {
     UnitLit => 1
-    Int16Lit(_) => 1
-    IntLit(_) => 1
-    Int64Lit(_) => 1
-    UInt16Lit(_) => 1
-    UIntLit(_) => 1
-    UInt64Lit(_) => 1
+    Fixnum(_) => 1
     DoubleLit(_) => 1
     FloatLit(_) => 1
     BoolLit(_) => 1
@@ -190,12 +185,12 @@ fn pretty_print_repr_go(
 ) -> @printer.Content {
   match label {
     UnitLit => @printer.comma_seq("(", ")", [])
-    Int16Lit(x) => @printer.leaf(x, needs_parens=x < 0)
-    IntLit(x) => @printer.leaf(x, needs_parens=x < 0)
-    Int64Lit(x) => @printer.leaf_with_suffix(x, "L", needs_parens=x < 0L)
-    UInt16Lit(x) => @printer.leaf(x)
-    UIntLit(x) => @printer.leaf_with_suffix(x, "U")
-    UInt64Lit(x) => @printer.leaf_with_suffix(x, "UL")
+    Fixnum(s) => {
+      let needs_parens = s.length() > 0 && s.code_unit_at(0) == '-'
+      @printer.no_parens(
+        @printer.content_parens(if needs_parens { 1 } else { 0 }, [s]),
+      )
+    }
     DoubleLit(x) => {
       let needs_parens = 1.0 / x < 0.0
       @printer.leaf(x, needs_parens~)

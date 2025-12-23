@@ -8,12 +8,7 @@ package "dii_user/moonbit_debugged/repr"
 // Types and methods
 pub enum Repr {
   UnitLit
-  Int16Lit(Int16)
-  IntLit(Int)
-  Int64Lit(Int64)
-  UInt16Lit(UInt16)
-  UIntLit(UInt)
-  UInt64Lit(UInt64)
+  Fixnum(String)
   DoubleLit(Double)
   FloatLit(Float)
   BoolLit(Bool)

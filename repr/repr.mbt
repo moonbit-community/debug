@@ -1,14 +1,3 @@
-// | type     | description                               | example          |
-// | -------- | ----------------------------------------- | ---------------- |
-// | `Int16`  | 16-bit signed integer                     | `(42 : Int16)`   |
-// | `Int`    | 32-bit signed integer                     | `42`             |
-// | `Int64`  | 64-bit signed integer                     | `1000L`          |
-// | `UInt16` | 16-bit unsigned integer                   | `(14 : UInt16)`  |
-// | `UInt`   | 32-bit unsigned integer                   | `14U`            |
-// | `UInt64` | 64-bit unsigned integer                   | `14UL`           |
-// | `Double` | 64-bit floating point, defined by IEEE754 | `3.14`           |
-// | `Float`  | 32-bit floating point                     | `(3.14 : Float)` |
-
 ///|
 /// Direct structural representation for debugging/diffing/pretty-printing.
 ///
@@ -24,23 +13,14 @@
 ///   `Enum(name, [EnumLabeledArg(label, value), ...])`,
 ///   which supports mixing positional and labeled args.
 /// - `Map` is encoded as `Map([MapEntry(key, value), ...])`, which is
-///   intended for “map-like” collections (MoonBit map literals like `{ k: v }`).
-/// - `Opaque` is intended for “container-like” wrappers that keep a type/tag but
+///   intended for "map-like" collections (MoonBit map literals like `{ k: v }`).
+/// - `Opaque` is intended for "container-like" wrappers that keep a type/tag but
 ///   otherwise behave structurally through their children.
 pub enum Repr {
   UnitLit
-  /// 16-bit signed integer literal leaf.
-  Int16Lit(Int16)
-  /// 32-bit signed integer literal leaf.
-  IntLit(Int)
-  /// 64-bit signed integer literal leaf.
-  Int64Lit(Int64)
-  /// 16-bit unsigned integer literal leaf.
-  UInt16Lit(UInt16)
-  /// 32-bit unsigned integer literal leaf.
-  UIntLit(UInt)
-  /// 64-bit unsigned integer literal leaf.
-  UInt64Lit(UInt64)
+  /// Fixed-width integer literal leaf (stored as string representation).
+  /// Covers Int16, Int, Int64, UInt16, UInt, UInt64, etc.
+  Fixnum(String)
   /// 64-bit floating-point literal leaf.
   DoubleLit(Double)
   /// 32-bit floating-point literal leaf.
@@ -108,12 +88,7 @@ pub fn Repr::ctor(name : String, args : Array[(String?, Repr)]) -> Repr {
 pub fn Repr::children(self : Repr) -> Array[Repr] {
   match self {
     UnitLit
-    | Int16Lit(_)
-    | IntLit(_)
-    | Int64Lit(_)
-    | UInt16Lit(_)
-    | UIntLit(_)
-    | UInt64Lit(_)
+    | Fixnum(_)
     | DoubleLit(_)
     | FloatLit(_)
     | BoolLit(_)
@@ -145,12 +120,7 @@ pub fn Repr::children(self : Repr) -> Array[Repr] {
 pub fn Repr::with_children(self : Repr, children : Array[Repr]) -> Repr {
   match self {
     UnitLit
-    | Int16Lit(_)
-    | IntLit(_)
-    | Int64Lit(_)
-    | UInt16Lit(_)
-    | UIntLit(_)
-    | UInt64Lit(_)
+    | Fixnum(_)
     | DoubleLit(_)
     | FloatLit(_)
     | BoolLit(_)
@@ -198,19 +168,14 @@ pub fn Repr::traverse(self : Repr, f : (Repr) -> Repr) -> Repr {
 }
 
 ///|
-/// A shallow copy of `self` containing only its “label” (children replaced).
+/// A shallow copy of `self` containing only its "label" (children replaced).
 ///
 /// This is used by diff/pretty-print when the structure is preserved but
 /// children are rendered separately.
 pub fn Repr::shallow(self : Repr) -> Repr {
   match self {
     UnitLit
-    | Int16Lit(_)
-    | IntLit(_)
-    | Int64Lit(_)
-    | UInt16Lit(_)
-    | UIntLit(_)
-    | UInt64Lit(_)
+    | Fixnum(_)
     | DoubleLit(_)
     | FloatLit(_)
     | BoolLit(_)

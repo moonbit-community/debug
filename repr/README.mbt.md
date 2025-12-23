@@ -47,7 +47,7 @@ the corresponding `Repr` is:
 
 ```text
 Record([
-  RecordField("x", IntLit(...)),
+  RecordField("x", Fixnum(...)),
   RecordField("y", StringLit(...)),
 ])
 ```
@@ -62,7 +62,7 @@ test {
     "y": Repr::string("hi"),
   })
   match r {
-    Record([RecordField("x", IntLit(1)), RecordField("y", StringLit("hi"))]) =>
+    Record([RecordField("x", Fixnum("1")), RecordField("y", StringLit("hi"))]) =>
       ()
     _ => fail("unexpected Repr shape for record {x: Int; y: String}")
   }
@@ -86,7 +86,7 @@ Unit is the empty tuple:
 test {
   let t : Repr = Repr::tuple([Repr::int(1), Repr::string("x")])
   match t {
-    Tuple([IntLit(1), StringLit("x")]) => ()
+    Tuple([Fixnum("1"), StringLit("x")]) => ()
     _ => fail("unexpected Repr shape for tuple (Int, String)")
   }
 }
@@ -115,7 +115,7 @@ test {
   match r {
     Enum(
       "A",
-      [EnumLabeledArg("x", IntLit(1)), EnumLabeledArg("y", StringLit("hi"))]
+      [EnumLabeledArg("x", Fixnum("1")), EnumLabeledArg("y", StringLit("hi"))]
     ) => ()
     _ => fail("unexpected Repr shape for labeled ctor A(x=Int, y=String)")
   }
