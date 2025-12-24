@@ -4,6 +4,7 @@ impl @debug.Debug for Pos with debug(self) {
   let fields : Map[String, @repr.Repr] = {}
   fields["x"] = @debug.debug(self.x)
   fields["y"] = @debug.debug(self.y)
+  fields["z"] = @debug.debug(self.z)
   @repr.Repr::record(fields)
 }
 
@@ -28,5 +29,13 @@ impl @debug.Debug for KeyNotFound with debug(self) {
   match self {
     KeyNotFound(x0) => @repr.Repr::ctor("KeyNotFound", [(None, @debug.debug(x0))])
   }
+}
+
+///|
+impl[T : @debug.Debug] @debug.Debug for Stack[T] with debug(self) {
+  let fields : Map[String, @repr.Repr] = {}
+  fields["array"] = @debug.debug(self.array)
+  fields["current"] = @debug.debug(self.current)
+  @repr.Repr::record(fields)
 }
 
