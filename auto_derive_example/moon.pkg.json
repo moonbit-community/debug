@@ -1,7 +1,7 @@
 {
     "pre-build": [
         {
-            "command": "./auto_derive/auto_derive $input $output",
+            "command": "../auto_derive/auto_derive $input $output",
             "input": "input.mbt",
             "output": "output.mbt"
         }

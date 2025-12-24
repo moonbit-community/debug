@@ -8,6 +8,16 @@ It provides:
 - A tree-based `diff` (`ReprDelta`) with configurable float tolerance
 - A pretty printer for both `Repr` and `ReprDelta` (optionally with ANSI marks)
 
+## Project structure
+
+The current pre-build command design forces us to separate the build script (written in MoonBit) 
+into its own module and use a local binary dependency to invoke it. 
+Therefore, the project is structured as follows:
+
+- `debug/`: the main library module
+- `auto_derive/`: the build script module that generates `Debug` implementations
+- `auto_derive_example/`: an example module that uses the `debug` library and build script to generate code
+
 ## Quickstart
 
 Run the small demo:

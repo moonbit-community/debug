@@ -1,11 +1,6 @@
 {
   "name": "dii_user/moonbit_debugged",
   "version": "0.1.0",
-  "bin-deps": {
-    "dii_user/auto_derive": {
-      "path": "./auto_derive"
-    } 
-  },
   "readme": "README.mbt.md",
   "repository": "",
   "license": "Apache-2.0",
