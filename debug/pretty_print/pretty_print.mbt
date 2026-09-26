@@ -138,7 +138,7 @@ fn is_unquoted_key(key : String) -> Bool {
           i < chars.length()
           i = i + 1, ok = ok && is_unquoted_key_tail(chars[i]) {
 
-      } else {
+      } nobreak {
         ok
       }
     }
