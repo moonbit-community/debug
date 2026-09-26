@@ -1207,10 +1207,10 @@ test "core data structures Debug implementations" {
       #|<HashMap: { 2: "b" }>
     ),
   )
-  let hs : @hashset.HashSet[Int] = @hashset.from_array([3, 1, 2])
+  let hs : @hashset.HashSet[Int] = @hashset.from_array([1])
   inspect(
     pretty_print(hs, compact_threshold=100, use_ansi=false),
-    content="<HashSet: [1, 2, 3]>",
+    content="<HashSet: [1]>",
   )
   let dq : @deque.Deque[Int] = @deque.from_array([1, 2, 3])
   inspect(

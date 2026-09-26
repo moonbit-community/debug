@@ -44,8 +44,8 @@ fn content_parens(size : Int, lines : Array[String]) -> ContentParens {
 }
 
 ///|
-/// Render any `Show` value as a leaf content node.
-fn[T : Show] leaf(x : T, needs_parens? : Bool = false) -> Content {
+/// Render any `Debug` value as a leaf content node.
+fn[T : Debug] leaf(x : T, needs_parens? : Bool = false) -> Content {
   { size: 1, lines: [repr(x)], needs_parens }
 }
 

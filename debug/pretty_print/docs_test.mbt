@@ -472,6 +472,6 @@ test "docs: diff_repr can ignore tiny float changes" {
         use_ansi=false,
       ),
     ),
-    content="(\"-1 +1.0000000000001\", \"1\")",
+    content="(-1 +1.0000000000001, 1)",
   )
 }
