@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbit-community/debug/diff"
 
-import(
-  "moonbit-community/debug/repr"
-)
+import {
+  "moonbit-community/debug/repr",
+}
 
 // Values
 pub fn diff_repr(@repr.Repr, @repr.Repr, max_relative_error? : Double) -> ReprDelta
@@ -21,10 +21,7 @@ pub(all) enum DebugDelta {
 pub struct ReprDelta(DebugDelta)
 pub fn ReprDelta::delta(Self) -> DebugDelta
 pub fn ReprDelta::from_delta(DebugDelta) -> Self
-#deprecated
-pub fn ReprDelta::inner(Self) -> DebugDelta
 
 // Type aliases
 
 // Traits
-
