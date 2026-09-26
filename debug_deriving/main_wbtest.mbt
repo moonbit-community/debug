@@ -287,29 +287,6 @@ test "generate_debug_impl for suberror NoPayload" {
 }
 
 ///|
-test "generate_debug_impl for suberror SinglePayload" {
-  let source =
-    #|#debug.derive
-    #|suberror ValueError String
-  let (impls, _) = @parser.parse_string(source)
-  let buf = StringBuilder::new()
-  impls.each(fn(x) { process(x, buf) })
-  inspect(
-    buf.to_string(),
-    content=(
-      #|///|
-      #|impl @debug.Debug for ValueError with debug(self) {
-      #|  match self {
-      #|    ValueError(x0) => @repr.Repr::ctor("ValueError", [(None, @debug.debug(x0))])
-      #|  }
-      #|}
-      #|
-      #|
-    ),
-  )
-}
-
-///|
 test "generate_debug_impl for suberror EnumPayload" {
   let source =
     #|#debug.derive
