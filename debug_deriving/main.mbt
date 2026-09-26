@@ -108,29 +108,15 @@ fn generate_type_constraints(decl : @syntax.TypeDecl) -> String {
 /// Generate the debug method body based on TypeDesc
 fn generate_debug_body(type_name : String, desc : @syntax.TypeDesc) -> String {
   match desc {
-    Abstract | Extern | Alias(_) =>
-      // For abstract, extern, and alias types, just return the type name as literal
+    Abstract | Alias(_) | ExtensibleEnum(_) | ExtendEnum(..) =>
+      // For abstract and alias types (and extensible enums, whose constructor
+      // set is open), just return the type name as literal
       "  @repr.Repr::literal(\"\{type_name}\")"
-    Newtype(inner_type) => generate_newtype_body(type_name, inner_type)
     Variant(constrs) => generate_variant_body(type_name, constrs)
-    Record(fields) => generate_record_body(type_name, fields)
+    Record(fields~) => generate_record_body(type_name, fields)
     TupleStruct(types) => generate_tuple_struct_body(type_name, types)
     Error(exception_decl) => generate_error_body(type_name, exception_decl)
   }
-}
-
-///|
-/// Generate debug body for Newtype
-fn generate_newtype_body(type_name : String, _inner : @syntax.Type) -> String {
-  // Newtype: struct TypeName(InnerType)
-  // Pattern: TypeName(inner) => Repr::ctor("TypeName", [(None, debug(inner))])
-  let buf = StringBuilder::new()
-  buf.write_string("  match self {\n")
-  buf.write_string(
-    "    \{type_name}(inner) => @repr.Repr::ctor(\"\{type_name}\", [(None, @debug.debug(inner))])\n",
-  )
-  buf.write_string("  }")
-  buf.to_string()
 }
 
 ///|
@@ -253,16 +239,6 @@ fn generate_error_body(
     NoPayload =>
       // suberror MyError - no payload
       "  @repr.Repr::ctor(\"\{type_name}\", [])"
-    SinglePayload(_) => {
-      // suberror MyError Type - single payload
-      let buf = StringBuilder::new()
-      buf.write_string("  match self {\n")
-      buf.write_string(
-        "    \{type_name}(x0) => @repr.Repr::ctor(\"\{type_name}\", [(None, @debug.debug(x0))])\n",
-      )
-      buf.write_string("  }")
-      buf.to_string()
-    }
     EnumPayload(constrs) =>
       // suberror MyError { Variant1; Variant2(Int) } - enum-like payload
       generate_variant_body(type_name, constrs)
