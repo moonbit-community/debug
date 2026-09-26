@@ -1,10 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbit-community/debug/pretty_print"
 
-import(
-  "moonbit-community/debug/diff"
-  "moonbit-community/debug/repr"
-)
+import {
+  "moonbit-community/debug/diff",
+  "moonbit-community/debug/repr",
+}
 
 // Values
 pub fn pretty_print_delta(@diff.ReprDelta, max_depth? : Int, compact_threshold? : Int, use_ansi? : Bool) -> String
@@ -20,4 +20,3 @@ pub fn prune_info(@repr.Repr, replacement? : @repr.Repr, depth~ : Int) -> @repr.
 // Type aliases
 
 // Traits
-
