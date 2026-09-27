@@ -5,7 +5,7 @@
 /// - `debug(x)` builds a `Repr`
 /// - `pretty_print(x, ...)`, `diff(x, ...)`, and `pretty_print_diff(x, ...)` work out of the box
 pub(open) trait Debug {
-  debug(Self) -> @repr.Repr
+  fn debug(Self) -> @repr.Repr
 }
 
 ///|

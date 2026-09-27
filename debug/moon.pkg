@@ -1,0 +1,5 @@
+import {
+  "moonbit-community/debug/repr",
+  "moonbit-community/debug/diff",
+  "moonbit-community/debug/pretty_print" @pp,
+}

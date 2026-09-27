@@ -1,0 +1,4 @@
+import {
+  "moonbit-community/debug/repr",
+  "moonbit-community/debug/diff",
+}

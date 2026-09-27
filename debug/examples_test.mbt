@@ -5,7 +5,7 @@ struct Person {
 } derive(Show, Eq)
 
 ///|
-pub impl Debug for Person with debug(self) {
+pub impl Debug for Person with fn debug(self) {
   @repr.Repr::record({ "name": debug(self.name), "age": debug(self.age) })
 }
 
@@ -17,7 +17,7 @@ enum Expr {
 } derive(Show, Eq)
 
 ///|
-pub impl Debug for Expr with debug(self) {
+pub impl Debug for Expr with fn debug(self) {
   match self {
     Lit(n) => Repr::ctor("Lit", [(None, debug(n))])
     Var(s) => Repr::ctor("Var", [(None, debug(s))])
@@ -31,7 +31,7 @@ pub impl Debug for Expr with debug(self) {
 
 ///|
 test "custom struct pretty_print" {
-  let p : Person = { name: "Alice", age: 42 }
+  let p : Person = { name: "Alice", age: 42, }
   inspect(
     pretty_print(p),
     content=(

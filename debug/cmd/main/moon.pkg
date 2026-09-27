@@ -1,0 +1,5 @@
+import {
+  "moonbit-community/debug" @lib,
+}
+
+pkgtype(kind: "executable")

@@ -1,0 +1,13 @@
+import {
+  "moonbitlang/parser",
+  "moonbitlang/parser/syntax",
+  "moonbitlang/parser/attribute",
+  "moonbitlang/x/fs",
+}
+
+pkgtype(kind: "executable")
+
+options(
+  "bin-name": "debug_deriving",
+  "bin-target": "wasm-gc",
+)
