@@ -1,0 +1,59 @@
+name: deprecate-package
+
+# Marks every published version of one module in this repository as
+# deprecated on mooncakes.io, using the org secret
+# MOONCAKES_MOONBIT_COMMUNITY_TOKEN. Versions published later start
+# undeprecated; `moon deprecate --undo` reverses it.
+
+on:
+  workflow_dispatch:
+    inputs:
+      module:
+        description: Module to deprecate
+        required: true
+        type: choice
+        options:
+          - debug
+          - debug_deriving
+      reason:
+        description: Deprecation reason shown to users (name the replacement)
+        required: true
+        type: string
+      dry_run:
+        description: Only print what would change
+        required: true
+        type: boolean
+        default: true
+
+permissions: {}
+
+jobs:
+  deprecate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: install-ubuntu
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: deprecate
+        env:
+          SECRET: ${{ secrets.MOONCAKES_MOONBIT_COMMUNITY_TOKEN }}
+          MODULE: moonbit-community/${{ inputs.module }}
+          REASON: ${{ inputs.reason }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        shell: bash
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            moon deprecate --dry-run --reason "$REASON" "$MODULE"
+            exit 0
+          fi
+          if [ -z "$SECRET" ]; then
+            echo "Error: MOONCAKES_MOONBIT_COMMUNITY_TOKEN secret is not set."
+            exit 1
+          fi
+          echo "$SECRET" > ~/.moon/credentials.json
+          moon deprecate --reason "$REASON" "$MODULE"
+          rm ~/.moon/credentials.json
