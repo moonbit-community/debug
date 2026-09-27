@@ -1,6 +1,6 @@
 name = "moonbit-community/debug_deriving"
 
-version = "0.1.1"
+version = "0.1.2"
 
 import {
   "moonbitlang/parser@0.4.0",
