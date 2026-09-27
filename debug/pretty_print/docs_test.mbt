@@ -27,7 +27,7 @@ fn List::debug(x : Self) -> @repr.Repr {
 
 ///|
 test "Nested List" {
-  let rcd = { answer: 1, xs: [1, 2, 3], tag: Ok("test string result") }
+  let rcd = { answer: 1, xs: [1, 2, 3], tag: Ok("test string result"), }
   fn repeat(n) {
     if n == 0 {
       Nil
@@ -165,7 +165,7 @@ fn example_repr(example : Example) -> @repr.Repr {
 
 ///|
 test "docs: custom type pretty_print" {
-  let sample : Example = { answer: 42, xs: [1, 2, 3], tag: Ok("done") }
+  let sample : Example = { answer: 42, xs: [1, 2, 3], tag: Ok("done"), }
   let r = example_repr(sample)
   inspect(
     pretty_print_repr(r, compact_threshold=100, use_ansi=false),
@@ -222,7 +222,7 @@ fn numbers_repr(value : Numbers) -> @repr.Repr {
 
 ///|
 test "docs: threshold controls single-line vs multi-line" {
-  let sample : Numbers = { xs: [1, 2, 3] }
+  let sample : Numbers = { xs: [1, 2, 3], }
   let r = numbers_repr(sample)
   let compact = pretty_print_repr(r)
   let expanded = pretty_print_repr(r, compact_threshold=0, use_ansi=false)
@@ -397,7 +397,7 @@ fn dict_repr(value : DictExample) -> @repr.Repr {
 
 ///|
 test "docs: dict prints as k: v pairs" {
-  let sample : DictExample = { entries: [("a", 1), ("b", 2)] }
+  let sample : DictExample = { entries: [("a", 1), ("b", 2)], }
   let r = dict_repr(sample)
   inspect(
     pretty_print_repr(r, compact_threshold=100, use_ansi=false),
@@ -409,7 +409,7 @@ test "docs: dict prints as k: v pairs" {
 
 ///|
 test "docs: dict expands with quoted keys + trailing commas" {
-  let sample : DictExample = { entries: [("a", 1), ("b", 2)] }
+  let sample : DictExample = { entries: [("a", 1), ("b", 2)], }
   let r = dict_repr(sample)
   inspect(
     pretty_print_repr(r, compact_threshold=0, use_ansi=false),
@@ -437,7 +437,7 @@ fn opaque_repr(value : OpaqueExample) -> @repr.Repr {
 
 ///|
 test "docs: opaque wrappers show tag and children" {
-  let sample : OpaqueExample = { label: "Vec", xs: [1, 2] }
+  let sample : OpaqueExample = { label: "Vec", xs: [1, 2], }
   let r = opaque_repr(sample)
   inspect(
     pretty_print_repr(r, compact_threshold=100, use_ansi=false),
@@ -457,8 +457,8 @@ fn float_repr(sample : FloatSample) -> @repr.Repr {
 
 ///|
 test "docs: diff_repr can ignore tiny float changes" {
-  let x = float_repr({ value: 1.0 })
-  let y = float_repr({ value: 1.0 + 1.0e-13 })
+  let x = float_repr({ value: 1.0, })
+  let y = float_repr({ value: 1.0 + 1.0e-13, })
   inspect(
     (
       pretty_print_delta(

@@ -1,103 +1,103 @@
 ///|
-pub impl Debug for Int with debug(self) {
+pub impl Debug for Int with fn debug(self) {
   Repr::int(self)
 }
 
 ///|
-pub impl Debug for Int16 with debug(self) {
+pub impl Debug for Int16 with fn debug(self) {
   // Use an opaque wrapper to preserve the exact integer width.
   Repr::opaque_("Int16", [Repr::literal(self.to_string())])
 }
 
 ///|
-pub impl Debug for Int64 with debug(self) {
+pub impl Debug for Int64 with fn debug(self) {
   // Keep the explicit type tag (instead of printing `1L`) to make diffs clearer.
   Repr::opaque_("Int64", [Repr::literal(self.to_string())])
 }
 
 ///|
-pub impl Debug for UInt16 with debug(self) {
+pub impl Debug for UInt16 with fn debug(self) {
   Repr::opaque_("UInt16", [Repr::literal(self.to_string())])
 }
 
 ///|
-pub impl Debug for UInt with debug(self) {
+pub impl Debug for UInt with fn debug(self) {
   Repr::opaque_("UInt", [Repr::literal(self.to_string())])
 }
 
 ///|
-pub impl Debug for UInt64 with debug(self) {
+pub impl Debug for UInt64 with fn debug(self) {
   Repr::opaque_("UInt64", [Repr::literal(self.to_string())])
 }
 
 ///|
-pub impl Debug for Double with debug(self) {
+pub impl Debug for Double with fn debug(self) {
   Repr::double(self)
 }
 
 ///|
-pub impl Debug for Float with debug(self) {
+pub impl Debug for Float with fn debug(self) {
   // Preserve float width (instead of printing as Double).
   Repr::opaque_("Float", [Repr::literal(self.to_string())])
 }
 
 ///|
-pub impl Debug for Bool with debug(self) {
+pub impl Debug for Bool with fn debug(self) {
   Repr::bool(self)
 }
 
 ///|
-pub impl Debug for Byte with debug(self) {
+pub impl Debug for Byte with fn debug(self) {
   // Use hex to make byte sequences easier to read.
   Repr::literal("0x" + self.to_hex())
 }
 
 ///|
-pub impl Debug for Char with debug(self) {
+pub impl Debug for Char with fn debug(self) {
   Repr::char(self)
 }
 
 ///|
-pub impl Debug for String with debug(self) {
+pub impl Debug for String with fn debug(self) {
   Repr::string(self)
 }
 
 ///|
-pub impl Debug for StringView with debug(self) {
+pub impl Debug for StringView with fn debug(self) {
   Repr::opaque_("StringView", [Repr::string(self.to_string())])
 }
 
 ///|
-pub impl Debug for Bytes with debug(self) {
+pub impl Debug for Bytes with fn debug(self) {
   Repr::opaque_("Bytes", [Repr::array(self.to_array().map(fn(b) { debug(b) }))])
 }
 
 ///|
-pub impl Debug for BytesView with debug(self) {
+pub impl Debug for BytesView with fn debug(self) {
   Repr::opaque_("BytesView", [
     Repr::array(self.to_array().map(fn(b) { debug(b) })),
   ])
 }
 
 ///|
-pub impl Debug for Unit with debug(_) {
+pub impl Debug for Unit with fn debug(_) {
   Repr::tuple([])
 }
 
 ///|
-pub impl[T : Debug] Debug for Array[T] with debug(self) {
+pub impl[T : Debug] Debug for Array[T] with fn debug(self) {
   Repr::array(self.map(fn(x) { debug(x) }))
 }
 
 ///|
-pub impl[T : Debug] Debug for ArrayView[T] with debug(self) {
+pub impl[T : Debug] Debug for ArrayView[T] with fn debug(self) {
   Repr::opaque_("ArrayView", [
     Repr::array(self.to_array().map(fn(x) { debug(x) })),
   ])
 }
 
 ///|
-pub impl[T : Debug] Debug for FixedArray[T] with debug(self) {
+pub impl[T : Debug] Debug for FixedArray[T] with fn debug(self) {
   // `FixedArray` can be viewed as `ArrayView` via slicing.
   let view : ArrayView[T] = self[:]
   Repr::opaque_("FixedArray", [
@@ -106,7 +106,7 @@ pub impl[T : Debug] Debug for FixedArray[T] with debug(self) {
 }
 
 ///|
-pub impl[T : Debug] Debug for ReadOnlyArray[T] with debug(self) {
+pub impl[T : Debug] Debug for ReadOnlyArray[T] with fn debug(self) {
   // `ReadOnlyArray` can be viewed as `ArrayView` via slicing.
   let view : ArrayView[T] = self[:]
   Repr::opaque_("ReadOnlyArray", [
@@ -115,7 +115,7 @@ pub impl[T : Debug] Debug for ReadOnlyArray[T] with debug(self) {
 }
 
 ///|
-pub impl[T : Debug] Debug for T? with debug(self) {
+pub impl[T : Debug] Debug for T? with fn debug(self) {
   match self {
     None => Repr::ctor("None", [])
     Some(x) => Repr::ctor("Some", [(None, debug(x))])
@@ -123,7 +123,7 @@ pub impl[T : Debug] Debug for T? with debug(self) {
 }
 
 ///|
-pub impl[T : Debug, E : Debug] Debug for Result[T, E] with debug(self) {
+pub impl[T : Debug, E : Debug] Debug for Result[T, E] with fn debug(self) {
   match self {
     Ok(x) => Repr::ctor("Ok", [(None, debug(x))])
     Err(e) => Repr::ctor("Err", [(None, debug(e))])
@@ -131,12 +131,14 @@ pub impl[T : Debug, E : Debug] Debug for Result[T, E] with debug(self) {
 }
 
 ///|
-pub impl[A : Debug] Debug for @list.List[A] with debug(self) {
+pub impl[A : Debug] Debug for @list.List[A] with fn debug(self) {
   Repr::opaque_("List", [Repr::array(self.to_array().map(fn(x) { debug(x) }))])
 }
 
 ///|
-pub impl[K : Debug, V : Debug] Debug for @hashmap.HashMap[K, V] with debug(self) {
+pub impl[K : Debug, V : Debug] Debug for @hashmap.HashMap[K, V] with fn debug(
+  self,
+) {
   // `HashMap` iteration order is unspecified; sort by key repr for stable output.
   let entries0 : Array[(Repr, Repr)] = self
     .to_array()
@@ -149,7 +151,7 @@ pub impl[K : Debug, V : Debug] Debug for @hashmap.HashMap[K, V] with debug(self)
 }
 
 ///|
-pub impl[K : Debug] Debug for @hashset.HashSet[K] with debug(self) {
+pub impl[K : Debug] Debug for @hashset.HashSet[K] with fn debug(self) {
   // `HashSet` iteration order is unspecified; sort elements for stable output.
   let xs0 : Array[Repr] = self.to_array().map(fn(x) { debug(x) })
   let xs : Array[Repr] = xs0
@@ -157,12 +159,12 @@ pub impl[K : Debug] Debug for @hashset.HashSet[K] with debug(self) {
 }
 
 ///|
-pub impl[A : Debug] Debug for @deque.Deque[A] with debug(self) {
+pub impl[A : Debug] Debug for @deque.Deque[A] with fn debug(self) {
   Repr::opaque_("Deque", [Repr::array(self.to_array().map(fn(x) { debug(x) }))])
 }
 
 ///|
-pub impl[A : Debug] Debug for @queue.Queue[A] with debug(self) {
+pub impl[A : Debug] Debug for @queue.Queue[A] with fn debug(self) {
   // `Queue` doesn't expose `to_array`, but we can snapshot via `iter()`.
   Repr::opaque_("Queue", [
     Repr::array(self.iter().to_array().map(fn(x) { debug(x) })),
@@ -170,19 +172,19 @@ pub impl[A : Debug] Debug for @queue.Queue[A] with debug(self) {
 }
 
 ///|
-pub impl[A] Debug for Iter[A] with debug(_) {
+pub impl[A] Debug for Iter[A] with fn debug(_) {
   // Avoid consuming the iterator (and avoid potentially infinite iterations).
   Repr::opaque_("Iter", [])
 }
 
 ///|
-pub impl[A, B] Debug for Iter2[A, B] with debug(_) {
+pub impl[A, B] Debug for Iter2[A, B] with fn debug(_) {
   // Avoid consuming the iterator (and avoid potentially infinite iterations).
   Repr::opaque_("Iter2", [])
 }
 
 ///|
-pub impl[T : Debug] Debug for MutArrayView[T] with debug(self) {
+pub impl[T : Debug] Debug for MutArrayView[T] with fn debug(self) {
   // Snapshot through an owned array to avoid aliasing surprises.
   Repr::opaque_("MutArrayView", [
     Repr::array(self[:].to_array().map(fn(x) { debug(x) })),
@@ -190,12 +192,12 @@ pub impl[T : Debug] Debug for MutArrayView[T] with debug(self) {
 }
 
 ///|
-pub impl[T : Debug] Debug for Ref[T] with debug(self) {
+pub impl[T : Debug] Debug for Ref[T] with fn debug(self) {
   Repr::opaque_("Ref", [debug(self.val)])
 }
 
 ///|
-pub impl[A : Debug + Compare] Debug for @priority_queue.PriorityQueue[A] with debug(
+pub impl[A : Debug + Compare] Debug for @priority_queue.PriorityQueue[A] with fn debug(
   self,
 ) {
   // `PriorityQueue` iteration order depends on internal heap state; sort for stable output.
@@ -205,25 +207,27 @@ pub impl[A : Debug + Compare] Debug for @priority_queue.PriorityQueue[A] with de
 }
 
 ///|
-pub impl Debug for @buffer.Buffer with debug(self) {
+pub impl Debug for @buffer.Buffer with fn debug(self) {
   // Represent buffer by its current bytes content.
   Repr::opaque_("Buffer", [debug(self.contents())])
 }
 
 ///|
-pub impl[A : Debug, B : Debug] Debug for (A, B) with debug(self) {
+pub impl[A : Debug, B : Debug] Debug for (A, B) with fn debug(self) {
   let (a, b) = self
   Repr::tuple([debug(a), debug(b)])
 }
 
 ///|
-pub impl[A : Debug, B : Debug, C : Debug] Debug for (A, B, C) with debug(self) {
+pub impl[A : Debug, B : Debug, C : Debug] Debug for (A, B, C) with fn debug(
+  self,
+) {
   let (a, b, c) = self
   Repr::tuple([debug(a), debug(b), debug(c)])
 }
 
 ///|
-pub impl[A : Debug, B : Debug, C : Debug, D : Debug] Debug for (A, B, C, D) with debug(
+pub impl[A : Debug, B : Debug, C : Debug, D : Debug] Debug for (A, B, C, D) with fn debug(
   self,
 ) {
   let (a, b, c, d) = self
@@ -237,7 +241,7 @@ pub impl[A : Debug, B : Debug, C : Debug, D : Debug, E : Debug] Debug for (
   C,
   D,
   E,
-) with debug(self) {
+) with fn debug(self) {
   let (a, b, c, d, e) = self
   Repr::tuple([debug(a), debug(b), debug(c), debug(d), debug(e)])
 }
@@ -250,7 +254,7 @@ pub impl[A : Debug, B : Debug, C : Debug, D : Debug, E : Debug, F : Debug] Debug
   D,
   E,
   F,
-) with debug(self) {
+) with fn debug(self) {
   let (a, b, c, d, e, f) = self
   Repr::tuple([debug(a), debug(b), debug(c), debug(d), debug(e), debug(f)])
 }
@@ -264,7 +268,7 @@ pub impl[
   E : Debug,
   F : Debug,
   G : Debug,
-] Debug for (A, B, C, D, E, F, G) with debug(self) {
+] Debug for (A, B, C, D, E, F, G) with fn debug(self) {
   let (a, b, c, d, e, f, g) = self
   Repr::tuple([
     debug(a),
@@ -287,7 +291,7 @@ pub impl[
   F : Debug,
   G : Debug,
   H : Debug,
-] Debug for (A, B, C, D, E, F, G, H) with debug(self) {
+] Debug for (A, B, C, D, E, F, G, H) with fn debug(self) {
   let (a, b, c, d, e, f, g, h) = self
   Repr::tuple([
     debug(a),
@@ -312,7 +316,7 @@ pub impl[
   G : Debug,
   H : Debug,
   I : Debug,
-] Debug for (A, B, C, D, E, F, G, H, I) with debug(self) {
+] Debug for (A, B, C, D, E, F, G, H, I) with fn debug(self) {
   let (a, b, c, d, e, f, g, h, i) = self
   Repr::tuple([
     debug(a),
@@ -339,7 +343,7 @@ pub impl[
   H : Debug,
   I : Debug,
   J : Debug,
-] Debug for (A, B, C, D, E, F, G, H, I, J) with debug(self) {
+] Debug for (A, B, C, D, E, F, G, H, I, J) with fn debug(self) {
   let (a, b, c, d, e, f, g, h, i, j) = self
   Repr::tuple([
     debug(a),
@@ -368,7 +372,7 @@ pub impl[
   I : Debug,
   J : Debug,
   K : Debug,
-] Debug for (A, B, C, D, E, F, G, H, I, J, K) with debug(self) {
+] Debug for (A, B, C, D, E, F, G, H, I, J, K) with fn debug(self) {
   let (a, b, c, d, e, f, g, h, i, j, k) = self
   Repr::tuple([
     debug(a),
@@ -399,7 +403,7 @@ pub impl[
   J : Debug,
   K : Debug,
   L : Debug,
-] Debug for (A, B, C, D, E, F, G, H, I, J, K, L) with debug(self) {
+] Debug for (A, B, C, D, E, F, G, H, I, J, K, L) with fn debug(self) {
   let (a, b, c, d, e, f, g, h, i, j, k, l) = self
   Repr::tuple([
     debug(a),
@@ -432,7 +436,7 @@ pub impl[
   K : Debug,
   L : Debug,
   M : Debug,
-] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M) with debug(self) {
+] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M) with fn debug(self) {
   let (a, b, c, d, e, f, g, h, i, j, k, l, m) = self
   Repr::tuple([
     debug(a),
@@ -467,7 +471,7 @@ pub impl[
   L : Debug,
   M : Debug,
   N : Debug,
-] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N) with debug(self) {
+] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N) with fn debug(self) {
   let (a, b, c, d, e, f, g, h, i, j, k, l, m, n) = self
   Repr::tuple([
     debug(a),
@@ -504,7 +508,7 @@ pub impl[
   M : Debug,
   N : Debug,
   O : Debug,
-] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O) with debug(self) {
+] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O) with fn debug(self) {
   let (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) = self
   Repr::tuple([
     debug(a),
@@ -543,7 +547,7 @@ pub impl[
   N : Debug,
   O : Debug,
   P : Debug,
-] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P) with debug(self) {
+] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P) with fn debug(self) {
   let (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) = self
   Repr::tuple([
     debug(a),
@@ -584,7 +588,9 @@ pub impl[
   O : Debug,
   P : Debug,
   Q : Debug,
-] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q) with debug(self) {
+] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q) with fn debug(
+  self,
+) {
   let (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q) = self
   Repr::tuple([
     debug(a),
@@ -627,7 +633,7 @@ pub impl[
   P : Debug,
   Q : Debug,
   R : Debug,
-] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R) with debug(
+] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R) with fn debug(
   self,
 ) {
   let (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r) = self
@@ -674,7 +680,7 @@ pub impl[
   Q : Debug,
   R : Debug,
   S : Debug,
-] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S) with debug(
+] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S) with fn debug(
   self,
 ) {
   let (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s) = self
@@ -723,7 +729,7 @@ pub impl[
   R : Debug,
   S : Debug,
   T : Debug,
-] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T) with debug(
+] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T) with fn debug(
   self,
 ) {
   let (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t) = self
@@ -774,7 +780,7 @@ pub impl[
   S : Debug,
   T : Debug,
   U : Debug,
-] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U) with debug(
+] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U) with fn debug(
   self,
 ) {
   let (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u) = self
@@ -827,7 +833,7 @@ pub impl[
   T : Debug,
   U : Debug,
   V : Debug,
-] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V) with debug(
+] Debug for (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V) with fn debug(
   self,
 ) {
   let (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v) = self
@@ -1250,7 +1256,7 @@ test "core data structures Debug implementations" {
 }
 
 ///|
-pub impl[K : Debug, V : Debug] Debug for Map[K, V] with debug(self) {
+pub impl[K : Debug, V : Debug] Debug for Map[K, V] with fn debug(self) {
   Repr::dict(
     self
     .to_array()
@@ -1262,6 +1268,6 @@ pub impl[K : Debug, V : Debug] Debug for Map[K, V] with debug(self) {
 }
 
 ///|
-pub impl Debug for SourceLoc with debug(self) {
+pub impl Debug for SourceLoc with fn debug(self) {
   Repr::opaque_("SourceLoc", [Repr::string(self.to_string())])
 }

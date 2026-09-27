@@ -1,8 +1,0 @@
-{
-  "import": [
-    {
-      "path": "moonbit-community/debug/repr",
-      "alias": "repr"
-    }
-  ]
-}
