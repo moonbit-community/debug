@@ -9,9 +9,19 @@ on:
 
 jobs:
   build-and-test:
-    name: Build and Test
+    name: Build and Test (${{ matrix.module }})
     runs-on: ubuntu-latest
-    
+    strategy:
+      fail-fast: false
+      matrix:
+        # The repository root is not a Moon project; each module lives in
+        # its own directory. The examples pin published versions and are
+        # not checked here.
+        module: [debug, debug_deriving]
+    defaults:
+      run:
+        working-directory: ${{ matrix.module }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
