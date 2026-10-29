@@ -65,9 +65,9 @@ pub fn[T] Stack::push(self : Self[T], x : T) -> Unit {
 ///|
 test {
   let point = PubPoint::{ x: 1, y: 2, }
-  inspect(@debug.pretty_print(point), content="{ x: 1, y: 2 }")
+  inspect(@debug.pretty_print_repr(point.debug()), content="{ x: 1, y: 2 }")
   inspect(
-    @debug.pretty_print(PubAllPoint::{ x: 3, y: 4, }),
+    @debug.pretty_print_repr(PubAllPoint::{ x: 3, y: 4, }.debug()),
     content="{ x: 3, y: 4 }",
   )
   inspect(
