@@ -57,9 +57,9 @@ Record([
 ```mbt check
 ///|
 test {
-  let r : Repr = @repr.Repr::record({
-    "x": Repr::int(1),
-    "y": Repr::string("hi"),
+  let r : @repr.Repr = @repr.Repr::record({
+    "x": @repr.Repr::int(1),
+    "y": @repr.Repr::string("hi"),
   })
   match r {
     Record([RecordField("x", Fixnum("1")), RecordField("y", StringLit("hi"))]) =>
@@ -84,7 +84,10 @@ Unit is the empty tuple:
 ```mbt check
 ///|
 test {
-  let t : Repr = Repr::tuple([Repr::int(1), Repr::string("x")])
+  let t : @repr.Repr = @repr.Repr::tuple([
+    @repr.Repr::int(1),
+    @repr.Repr::string("x"),
+  ])
   match t {
     Tuple([Fixnum("1"), StringLit("x")]) => ()
     _ => fail("unexpected Repr shape for tuple (Int, String)")
@@ -110,9 +113,9 @@ prints as `B(x=..., ...)`
 ```mbt check
 ///|
 test {
-  let r : Repr = Repr::ctor("A", [
-    (Some("x"), Repr::int(1)),
-    (Some("y"), Repr::string("hi")),
+  let r : @repr.Repr = @repr.Repr::ctor("A", [
+    (Some("x"), @repr.Repr::int(1)),
+    (Some("y"), @repr.Repr::string("hi")),
   ])
   match r {
     Enum(

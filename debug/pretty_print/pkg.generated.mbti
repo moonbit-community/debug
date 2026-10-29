@@ -7,11 +7,11 @@ import {
 }
 
 // Values
-pub fn pretty_print_delta(@diff.ReprDelta, max_depth? : Int, compact_threshold? : Int, use_ansi? : Bool) -> String
+pub fn pretty_print_delta(@diff.ReprDelta, max_depth? : Int32, compact_threshold? : Int32, use_ansi? : Bool) -> String
 
-pub fn pretty_print_repr(@repr.Repr, max_depth? : Int, compact_threshold? : Int, use_ansi? : Bool) -> String
+pub fn pretty_print_repr(@repr.Repr, max_depth? : Int32, compact_threshold? : Int32, use_ansi? : Bool) -> String
 
-pub fn prune_info(@repr.Repr, replacement? : @repr.Repr, depth~ : Int) -> @repr.Repr
+pub fn prune_info(@repr.Repr, replacement? : @repr.Repr, depth~ : Int32) -> @repr.Repr
 
 // Errors
 

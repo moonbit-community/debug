@@ -1,8 +1,7 @@
 ///|
 fn main {
-  // Skip the first two args (node path and script path)
+  // Ignore the executable name before the input and output paths.
   let all_args = @env.args()
-  println(all_args)
   guard all_args is [_, input, output, ..] else {
     println("Error: expecting input and output file.")
     return
@@ -12,7 +11,7 @@ fn main {
     println("Error: input file \{input} contains syntax error.")
     return
   }
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   buf.write_string("// generated file, do not edit\n")
   impls.each(fn(x) { process(x, buf) })
   println("auto_derive: \{input} -> \{output}")
@@ -74,6 +73,11 @@ fn generate_debug_impl(decl : @syntax.TypeDecl, buf : StringBuilder) -> Unit {
     "\{vis_prefix}impl[\{type_constraints}] @debug.Debug for \{full_type} with debug(self)"
   }
   buf.write_string("///|\n\{impl_header} {\n\{body}\n}\n\n")
+  if vis_prefix == "pub " {
+    buf.write_string(
+      "///|\npub extend \{type_name} with @debug.Debug::{debug}\n\n",
+    )
+  }
 }
 
 ///|
@@ -113,7 +117,7 @@ fn generate_debug_body(type_name : String, desc : @syntax.TypeDesc) -> String {
       // set is open), just return the type name as literal
       "  @repr.Repr::literal(\"\{type_name}\")"
     Variant(constrs) => generate_variant_body(type_name, constrs)
-    Record(fields~) => generate_record_body(type_name, fields)
+    Record(fields~, ..) => generate_record_body(type_name, fields)
     TupleStruct(types) => generate_tuple_struct_body(type_name, types)
     Error(exception_decl) => generate_error_body(type_name, exception_decl)
   }
@@ -125,7 +129,7 @@ fn generate_variant_body(
   _type_name : String,
   constrs : @list.List[@syntax.ConstrDecl],
 ) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   buf.write_string("  match self {\n")
   constrs.each(fn(constr) {
     let constr_name = constr.name.name
@@ -187,8 +191,8 @@ fn generate_record_body(
   _type_name : String,
   fields : @list.List[@syntax.FieldDecl],
 ) -> String {
-  let buf = StringBuilder::new()
-  buf.write_string("  let fields : Map[String, @repr.Repr] = {}\n")
+  let buf = StringBuilder()
+  buf.write_string("  let fields : Map[String, @repr.Repr] = Map([])\n")
   fields.each(fn(field) {
     let field_name = field.name.label
     buf.write_string(
@@ -205,7 +209,7 @@ fn generate_tuple_struct_body(
   type_name : String,
   types : @list.List[@syntax.Type],
 ) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   let type_count = types.length()
   if type_count == 0 {
     buf.write_string("  @repr.Repr::ctor(\"\{type_name}\", [])")

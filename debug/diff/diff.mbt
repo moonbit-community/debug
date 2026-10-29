@@ -157,9 +157,9 @@ fn diff_info_with(
         }
       }
       let children = if xlen < ylen {
-        children + ys[min_len:ylen].to_array().map(fn(t) { Extra2(t) })
+        children + ys[min_len:ylen].to_owned().map(fn(t) { Extra2(t) })
       } else if xlen > ylen {
-        children + xs[min_len:xlen].to_array().map(fn(t) { Extra1(t) })
+        children + xs[min_len:xlen].to_owned().map(fn(t) { Extra1(t) })
       } else {
         children
       }

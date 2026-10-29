@@ -1,5 +1,10 @@
 # moonbit-community/debug
 
+This legacy package is withdrawn from Mooncakes in favor of
+`moonbitlang/core/debug`. New code should use the standard library `Debug` trait,
+`derive(Debug)`, `debug_inspect`, and `render`. This checkout retains compatibility
+tests for existing users; it is not a new publication of the withdrawn package.
+
 An experimental `Debug` + `diff` + pretty-printer library for MoonBit. We plan 
 to add this to the standard library when it is more mature.
 
@@ -29,13 +34,15 @@ Non-goals:
 
 ## Project structure
 
-The current pre-build command design forces us to separate the build script (written in MoonBit) 
-into its own module and use a local binary dependency to invoke it. 
-Therefore, the project is structured as follows:
+The legacy generator is a separate executable module:
 
 * `debug/`: the main library module
-* `auto_derive/`: the build script module that generates `Debug` implementations
-* `auto_derive_example/`: an example module that uses the `debug` library and build script to generate code
+* `debug_deriving/`: the tool that generates legacy `Debug` implementations
+* `debug_deriving_examples/`: an example using the last published library
+* `debug_deriving_examples_local_deps/`: the same example using this checkout
+
+Run `./check.sh` from the repository root to install the checked-out generator
+into a temporary directory and validate all four module roots.
 
 ## Quickstart
 
@@ -71,7 +78,7 @@ Use `record` , `ctor` , `array` , and friends to build a `Repr` :
 ///|
 struct Person {
   name : String
-  age : Int
+  age : Int32
 }
 
 ///|
@@ -82,30 +89,31 @@ pub impl @dbg.Debug for Person with fn debug(self) {
 
 ## Auto deriving `Debug`
 
-To automatically generate `Debug` implementations for your types:
+For an existing project that still needs the legacy generator, install it from
+this checkout with `moon install ./debug_deriving` from the repository root.
+Ensure the installation directory (normally `~/.moon/bin`) is on `PATH`.
+The removed `bin-deps` manifest option is no longer used.
 
-1. add `moonbit-community/debug_deriving` as a binary dependency in your `moon.mod.json`
+In the consuming package's `moon.pkg`, configure:
 
-2. add a `pre-build` command that runs the `debug_deriving` binary, for example:
-
-```json
-{
+```moonbit nocheck
+options(
   "pre-build": [
     {
-      "command": "$mod_dir/.mooncakes/moonbit-community/debug_deriving/debug_deriving $input $output",
+      "command": "debug_deriving $input $output",
       "input": "input.mbt",
-      "output": "output.mbt"
-    }
-  ]
-}
+      "output": "output.mbt",
+    },
+  ],
+)
 ```
 
-3. in your `input.mbt`, add `#debug.derive` attribute to your types:
+Then add `#debug.derive` to the legacy input types:
 
 ```mbt nocheck
 ///|
 #debug.derive
-struct Pos(Int, Int)
+struct Pos(Int32, Int32)
 ```
 
 ## Options
@@ -130,9 +138,9 @@ examples.
 ```mbt check
 ///|
 test {
-  inspect(pretty_print([1, 2, 3]), content="[1, 2, 3]")
+  inspect(@debug.pretty_print([1, 2, 3]), content="[1, 2, 3]")
   inspect(
-    pretty_print_diff(1, 2, compact_threshold=100, use_ansi=false),
+    @debug.pretty_print_diff(1, 2, compact_threshold=100, use_ansi=false),
     content="-1 +2",
   )
 }

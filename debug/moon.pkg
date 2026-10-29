@@ -1,4 +1,11 @@
 import {
+  "moonbitlang/core/buffer",
+  "moonbitlang/core/list",
+  "moonbitlang/core/hashmap",
+  "moonbitlang/core/hashset",
+  "moonbitlang/core/deque",
+  "moonbitlang/core/queue",
+  "moonbitlang/core/priority_queue",
   "moonbit-community/debug/repr",
   "moonbit-community/debug/diff",
   "moonbit-community/debug/pretty_print" @pp,

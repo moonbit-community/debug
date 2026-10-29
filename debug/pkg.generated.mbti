@@ -21,13 +21,13 @@ pub fn[T : Debug] diff(T, T, max_relative_error? : Double) -> @diff.ReprDelta
 
 pub fn diff_repr(@repr.Repr, @repr.Repr, max_relative_error? : Double) -> @diff.ReprDelta
 
-pub fn[T : Debug] pretty_print(T, max_depth? : Int, compact_threshold? : Int, use_ansi? : Bool) -> String
+pub fn[T : Debug] pretty_print(T, max_depth? : Int32, compact_threshold? : Int32, use_ansi? : Bool) -> String
 
-pub fn pretty_print_delta(@diff.ReprDelta, max_depth? : Int, compact_threshold? : Int, use_ansi? : Bool) -> String
+pub fn pretty_print_delta(@diff.ReprDelta, max_depth? : Int32, compact_threshold? : Int32, use_ansi? : Bool) -> String
 
-pub fn[T : Debug] pretty_print_diff(T, T, max_depth? : Int, compact_threshold? : Int, use_ansi? : Bool, max_relative_error? : Double) -> String
+pub fn[T : Debug] pretty_print_diff(T, T, max_depth? : Int32, compact_threshold? : Int32, use_ansi? : Bool, max_relative_error? : Double) -> String
 
-pub fn pretty_print_repr(@repr.Repr, max_depth? : Int, compact_threshold? : Int, use_ansi? : Bool) -> String
+pub fn pretty_print_repr(@repr.Repr, max_depth? : Int32, compact_threshold? : Int32, use_ansi? : Bool) -> String
 
 // Errors
 
@@ -46,17 +46,16 @@ pub impl Debug for Unit
 pub impl Debug for Bool
 pub impl Debug for Byte
 pub impl Debug for Char
-pub impl Debug for Int
+pub impl Debug for Int32
 pub impl Debug for Int16
 pub impl Debug for Int64
-pub impl Debug for UInt
+pub impl Debug for UInt32
 pub impl Debug for UInt16
 pub impl Debug for UInt64
 pub impl Debug for Float
 pub impl Debug for Double
 pub impl Debug for String
 pub impl[T : Debug] Debug for T?
-pub impl[T : Debug, E : Debug] Debug for Result[T, E]
 pub impl[T : Debug] Debug for FixedArray[T]
 pub impl[T : Debug] Debug for ReadOnlyArray[T]
 pub impl Debug for Bytes
@@ -67,6 +66,7 @@ pub impl[A] Debug for Iter[A]
 pub impl[A, B] Debug for Iter2[A, B]
 pub impl[K : Debug, V : Debug] Debug for Map[K, V]
 pub impl[T : Debug] Debug for MutArrayView[T]
+pub impl[T : Debug, E : Debug] Debug for Result[T, E]
 pub impl Debug for SourceLoc
 pub impl[A : Debug] Debug for @deque.Deque[A]
 pub impl[K : Debug, V : Debug] Debug for @hashmap.HashMap[K, V]

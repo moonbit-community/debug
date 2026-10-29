@@ -1,0 +1,16 @@
+import {
+  "moonbit-community/debug/repr",
+  "moonbit-community/debug",
+}
+
+formatter(ignore: [ "output.mbt" ])
+
+options(
+  "pre-build": [
+    {
+      "command": "debug_deriving $input $output",
+      "input": "input.mbt",
+      "output": "output.mbt",
+    },
+  ],
+)

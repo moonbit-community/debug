@@ -13,10 +13,10 @@
 ///   - otherwise the whole subtree is replaced by `replacement`.
 pub fn prune_info(
   info : @repr.Repr,
-  replacement? : @repr.Repr = @repr.Repr::omitted(),
-  depth~ : Int,
+  replacement~ : @repr.Repr = @repr.Repr::omitted(),
+  depth~ : Int32,
 ) -> @repr.Repr {
-  fn go(d : Int, node : @repr.Repr) -> @repr.Repr {
+  fn go(d : Int32, node : @repr.Repr) -> @repr.Repr {
     let children = node.children()
     if d <= 0 {
       if children.is_empty() {
@@ -34,5 +34,5 @@ pub fn prune_info(
     }
   }
 
-  go(Int::max(1, depth), info)
+  go(Int32::max(1, depth), info)
 }

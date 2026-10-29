@@ -7,7 +7,7 @@ test "process finds #debug.derive on struct" {
     #|  y : Int
     #|}
   let (impls, _) = @parser.parse_string(source)
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   impls.each(fn(x) { process(x, buf) })
   let result = buf.to_string()
   assert_true(result.contains("impl @debug.Debug for Point"))
@@ -23,7 +23,7 @@ test "process ignores types without #debug.derive" {
     #|  age : Int
     #|}
   let (impls, _) = @parser.parse_string(source)
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   impls.each(fn(x) { process(x, buf) })
   assert_eq(buf.to_string(), "")
 }
@@ -37,14 +37,14 @@ test "generate_debug_impl for Record" {
     #|  y : Int
     #|}
   let (impls, _) = @parser.parse_string(source)
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   impls.each(fn(x) { process(x, buf) })
   inspect(
     buf.to_string(),
     content=(
       #|///|
       #|impl @debug.Debug for Point with debug(self) {
-      #|  let fields : Map[String, @repr.Repr] = {}
+      #|  let fields : Map[String, @repr.Repr] = Map([])
       #|  fields["x"] = @debug.debug(self.x)
       #|  fields["y"] = @debug.debug(self.y)
       #|  @repr.Repr::record(fields)
@@ -66,7 +66,7 @@ test "generate_debug_impl for Variant (enum)" {
     #|  Rgb(Int, Int, Int)
     #|}
   let (impls, _) = @parser.parse_string(source)
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   impls.each(fn(x) { process(x, buf) })
   inspect(
     buf.to_string(),
@@ -95,7 +95,7 @@ test "generate_debug_impl for enum with labeled args" {
     #|  Rectangle(width~ : Double, height~ : Double)
     #|}
   let (impls, _) = @parser.parse_string(source)
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   impls.each(fn(x) { process(x, buf) })
   inspect(
     buf.to_string(),
@@ -119,7 +119,7 @@ test "generate_debug_impl for TupleStruct" {
     #|#debug.derive
     #|struct Meters(Int)
   let (impls, _) = @parser.parse_string(source)
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   impls.each(fn(x) { process(x, buf) })
   inspect(
     buf.to_string(),
@@ -145,14 +145,14 @@ test "generate_debug_impl for generic struct" {
     #|  second : B
     #|}
   let (impls, _) = @parser.parse_string(source)
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   impls.each(fn(x) { process(x, buf) })
   inspect(
     buf.to_string(),
     content=(
       #|///|
       #|impl[A : @debug.Debug, B : @debug.Debug] @debug.Debug for Pair[A, B] with debug(self) {
-      #|  let fields : Map[String, @repr.Repr] = {}
+      #|  let fields : Map[String, @repr.Repr] = Map([])
       #|  fields["first"] = @debug.debug(self.first)
       #|  fields["second"] = @debug.debug(self.second)
       #|  @repr.Repr::record(fields)
@@ -172,7 +172,7 @@ test "generate_debug_impl for generic enum" {
     #|  Some(T)
     #|}
   let (impls, _) = @parser.parse_string(source)
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   impls.each(fn(x) { process(x, buf) })
   inspect(
     buf.to_string(),
@@ -196,7 +196,7 @@ test "generate_debug_impl for Newtype" {
     #|#debug.derive
     #|struct UserId(Int)
   let (impls, _) = @parser.parse_string(source)
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   impls.each(fn(x) { process(x, buf) })
   inspect(
     buf.to_string(),
@@ -224,7 +224,7 @@ test "process multiple types in one file" {
     #|#debug.derive
     #|enum Status { Active; Inactive }
   let (impls, _) = @parser.parse_string(source)
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   impls.each(fn(x) { process(x, buf) })
   let result = buf.to_string()
   // Should have Point
@@ -271,7 +271,7 @@ test "generate_debug_impl for suberror NoPayload" {
     #|#debug.derive
     #|suberror SimpleError
   let (impls, _) = @parser.parse_string(source)
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   impls.each(fn(x) { process(x, buf) })
   inspect(
     buf.to_string(),
@@ -295,7 +295,7 @@ test "generate_debug_impl for suberror EnumPayload" {
     #|  UnexpectedEof
     #|}
   let (impls, _) = @parser.parse_string(source)
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   impls.each(fn(x) { process(x, buf) })
   inspect(
     buf.to_string(),
