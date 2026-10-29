@@ -4,7 +4,7 @@
 /// This is an internal implementation detail of `pretty_print`.
 /// Users should rely on `pretty_print_repr` / `pretty_print_delta`.
 priv struct Content {
-  size : Int
+  size : Int32
   lines : Array[String]
   needs_parens : Bool
 }
@@ -14,7 +14,7 @@ priv struct Content {
 ///
 /// This is an internal implementation detail of `pretty_print`.
 priv struct ContentParens {
-  size : Int
+  size : Int32
   lines : Array[String]
 }
 
@@ -39,13 +39,13 @@ fn verbatim(x : String) -> ContentParens {
 
 ///|
 /// Build a `ContentParens` from explicit size and lines.
-fn content_parens(size : Int, lines : Array[String]) -> ContentParens {
+fn content_parens(size : Int32, lines : Array[String]) -> ContentParens {
   { size, lines, }
 }
 
 ///|
 /// Render any `Debug` value as a leaf content node.
-fn[T : Debug] leaf(x : T, needs_parens? : Bool = false) -> Content {
+fn[T : Debug] leaf(x : T, needs_parens~ : Bool = false) -> Content {
   { size: 1, lines: [repr(x)], needs_parens, }
 }
 
@@ -82,7 +82,7 @@ fn surround_lines(
     [item] => [start + item + finish]
     [first, ..] => {
       let n = lines.length()
-      let middle = if n <= 2 { [] } else { lines[1:n - 1].to_array() }
+      let middle = if n <= 2 { [] } else { lines[1:n - 1].to_owned() }
       let last = lines[n - 1]
       [start + first] + middle + [last + finish]
     }
@@ -255,7 +255,7 @@ fn indent(prefix : String, r : ContentParens) -> ContentParens {
 
 ///|
 /// Indent every line by a fixed number of spaces.
-fn indent_spaces(n : Int, r : ContentParens) -> ContentParens {
+fn indent_spaces(n : Int32, r : ContentParens) -> ContentParens {
   indent(" ".repeat(n), r)
 }
 
@@ -279,7 +279,7 @@ fn indent_spaces(n : Int, r : ContentParens) -> ContentParens {
 fn bracket_seq_lines(
   open : String,
   close : String,
-  indent_by : Int,
+  indent_by : Int32,
   contents : Array[Array[String]],
 ) -> Array[String] {
   match contents {
@@ -302,7 +302,7 @@ fn bracket_seq_lines(
           [] => [open + close]
           [x] =>
             if open == "{" && close == "}" {
-              let inner = x.trim().to_string()
+              let inner = x.trim().to_owned()
               if inner == "" {
                 ["{}"]
               } else {
@@ -370,7 +370,7 @@ fn comma_seq_lines(
       [item] => surround_lines(begin, end, item)
       [first, ..] => {
         let n = contents.length()
-        let middle = if n <= 2 { [] } else { contents[1:n - 1].to_array() }
+        let middle = if n <= 2 { [] } else { contents[1:n - 1].to_owned() }
         let last = contents[n - 1]
         let space = spacer(begin)
         let middle_lines = middle.fold(init=[], fn(acc, item) {
@@ -467,7 +467,7 @@ fn print_content(r : ContentParens) -> String {
 
 ///|
 /// Measure the maximum line width (in characters).
-fn max_line_width(lines : Array[String]) -> Int {
+fn max_line_width(lines : Array[String]) -> Int32 {
   let mut m = 0
   for line in lines {
     // `String::length()` counts UTF-16 code units; this is good enough for a
@@ -487,8 +487,8 @@ fn max_line_width(lines : Array[String]) -> Int {
 /// This fixes cases where a structurally small tree expands to a very long single
 /// line (e.g. deeply nested `Cons(...)`).
 fn with_resizing(
-  _root_size : Int,
-  threshold : Int,
+  _root_size : Int32,
+  threshold : Int32,
   f : (Array[Content]) -> Content,
   children : Array[Content],
 ) -> Content {

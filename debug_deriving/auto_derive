@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
-exec /Users/yorkin/.moon/bin/moonrun /Users/yorkin/source/moonbit/moonbit-debug-prototype/debug_deriving/target/wasm-gc/release/build/debug_deriving.wasm -- "$@"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec moon -C "$script_dir" run . --target wasm-gc -- "$@"

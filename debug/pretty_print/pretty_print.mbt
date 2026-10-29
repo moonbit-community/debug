@@ -1,12 +1,12 @@
 ///|
 /// Default max depth for pruning.
-let default_max_depth : Int = 4
+let default_max_depth : Int32 = 4
 
 ///|
 /// Default layout threshold for compact-vs-multiline decisions.
 ///
 /// Larger values prefer single-line output.
-let default_threshold : Int = 80
+let default_threshold : Int32 = 80
 
 ///|
 /// Default ANSI color setting.
@@ -14,7 +14,7 @@ let default_use_ansi : Bool = true
 
 ///|
 /// Prune a `Repr` using max_depth (replacing with `Omitted`).
-fn prune_repr_info(max_depth : Int?, info : @repr.Repr) -> @repr.Repr {
+fn prune_repr_info(max_depth : Int32?, info : @repr.Repr) -> @repr.Repr {
   match max_depth {
     None => info
     Some(depth) => prune_info(info, depth~)
@@ -23,8 +23,11 @@ fn prune_repr_info(max_depth : Int?, info : @repr.Repr) -> @repr.Repr {
 
 ///|
 /// Prune a `DebugDelta` using max_depth (replacing with `Same(Omitted, [])`).
-fn prune_delta(max_depth : Int?, delta : @diff.DebugDelta) -> @diff.DebugDelta {
-  fn go(d : Int, node : @diff.DebugDelta) -> @diff.DebugDelta {
+fn prune_delta(
+  max_depth : Int32?,
+  delta : @diff.DebugDelta,
+) -> @diff.DebugDelta {
+  fn go(d : Int32, node : @diff.DebugDelta) -> @diff.DebugDelta {
     match node {
       Same(label, children) =>
         if d <= 0 {
@@ -62,13 +65,13 @@ fn prune_delta(max_depth : Int?, delta : @diff.DebugDelta) -> @diff.DebugDelta {
 
   match max_depth {
     None => delta
-    Some(depth) => go(Int::max(1, depth), delta)
+    Some(depth) => go(Int32::max(1, depth), delta)
   }
 }
 
 ///|
 /// Heuristic "size" of a node for compact-vs-multiline decisions.
-fn info_size(info : @repr.Repr) -> Int {
+fn info_size(info : @repr.Repr) -> Int32 {
   match info {
     UnitLit => 1
     Fixnum(_) => 1
@@ -93,7 +96,7 @@ fn info_size(info : @repr.Repr) -> Int {
 
 ///|
 /// Heuristic "size" of a delta for compact-vs-multiline decisions.
-fn delta_root_size(delta : @diff.DebugDelta) -> Int {
+fn delta_root_size(delta : @diff.DebugDelta) -> Int32 {
   match delta {
     Same(label, _) => info_size(label)
     _ => 0
@@ -179,7 +182,8 @@ fn pretty_print_repr_go(
     }
     FloatLit(x) => {
       let needs_parens : Bool = (1.0 : Float) / x < (0.0 : Float)
-      leaf(x, needs_parens~)
+      // Preserve the exact binary32 value in the structural representation.
+      leaf(x.to_double(), needs_parens~)
     }
     BoolLit(x) => leaf(x)
     CharLit(x) => leaf(x)
@@ -225,7 +229,7 @@ fn pretty_print_repr_go(
               )
             [first, ..] => {
               let n = v.lines.length()
-              let rest = if n <= 1 { [] } else { v.lines[1:n].to_array() }
+              let rest = if n <= 1 { [] } else { v.lines[1:n].to_owned() }
               // put the key and the first line of value on the same line
               // then keep the remaining lines of the value as-is.
               let head = print_content(surround("", ": ", k)) + first
@@ -244,7 +248,7 @@ fn pretty_print_repr_go(
               no_parens(content_parens(1 + val.size, [name + "=" + first]))
             [first, ..] => {
               let n = val.lines.length()
-              let rest = if n <= 1 { [] } else { val.lines[1:n].to_array() }
+              let rest = if n <= 1 { [] } else { val.lines[1:n].to_owned() }
               no_parens(
                 content_parens(1 + val.size, [name + "=" + first] + rest),
               )
@@ -262,7 +266,7 @@ fn pretty_print_repr_go(
             [one] => no_parens(content_parens(1 + v.size, [label + ": " + one]))
             [first, ..] => {
               let n = v.lines.length()
-              let rest = if n <= 1 { [] } else { v.lines[1:n].to_array() }
+              let rest = if n <= 1 { [] } else { v.lines[1:n].to_owned() }
               no_parens(
                 content_parens(1 + v.size, [label + ": " + first] + rest),
               )
@@ -315,7 +319,11 @@ fn mark_removed(use_ansi : Bool, x : ContentParens) -> ContentParens {
 
 ///|
 /// Render a `Repr` as `Content` with resizing decisions.
-fn render_repr(threshold : Int, use_ansi : Bool, info : @repr.Repr) -> Content {
+fn render_repr(
+  threshold : Int32,
+  use_ansi : Bool,
+  info : @repr.Repr,
+) -> Content {
   let label = info.shallow()
   let children = info
     .children()
@@ -331,7 +339,7 @@ fn render_repr(threshold : Int, use_ansi : Bool, info : @repr.Repr) -> Content {
 ///|
 /// Render a `DebugDelta` as `Content` with resizing decisions.
 fn render_delta(
-  threshold : Int,
+  threshold : Int32,
   use_ansi : Bool,
   delta : @diff.DebugDelta,
 ) -> Content {
@@ -413,11 +421,11 @@ fn render_delta(
 /// - `use_ansi?`: whether to emit ANSI color escape codes. Defaults to `true` when `None`.
 pub fn pretty_print_repr(
   r : @repr.Repr,
-  max_depth? : Int,
-  compact_threshold? : Int,
+  max_depth? : Int32,
+  compact_threshold? : Int32,
   use_ansi? : Bool,
 ) -> String {
-  let max_depth : Int? = match max_depth {
+  let max_depth : Int32? = match max_depth {
     Some(_) => max_depth
     None => Some(default_max_depth)
   }
@@ -439,11 +447,11 @@ pub fn pretty_print_repr(
 ///   Defaults to `true` when `None`.
 pub fn pretty_print_delta(
   d : @diff.ReprDelta,
-  max_depth? : Int,
-  compact_threshold? : Int,
+  max_depth? : Int32,
+  compact_threshold? : Int32,
   use_ansi? : Bool,
 ) -> String {
-  let max_depth : Int? = match max_depth {
+  let max_depth : Int32? = match max_depth {
     Some(_) => max_depth
     None => Some(default_max_depth)
   }

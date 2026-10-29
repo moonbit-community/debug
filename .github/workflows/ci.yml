@@ -2,49 +2,35 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build-and-test:
-    name: Build and Test (${{ matrix.module }})
+    name: Check all modules (${{ matrix.toolchain }}, ${{ matrix.target }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        # The repository root is not a Moon project; each module lives in
-        # its own directory. The examples pin published versions and are
-        # not checked here.
-        module: [debug, debug_deriving]
-    defaults:
-      run:
-        working-directory: ${{ matrix.module }}
-
+        toolchain: [latest, nightly]
+        target: [wasm-gc, js, native]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Set up MoonBit
+      - uses: actions/checkout@v4
+      - name: Install MoonBit
+        env:
+          MOONBIT_INSTALL_VERSION: ${{ matrix.toolchain }}
         run: |
           curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
-          echo "$HOME/.moon/bin" >> $GITHUB_PATH
-      
-      - name: Show MoonBit version
-        run: moon version --all
-      
-      - name: Update MoonBit dependencies
-        run: moon update
-      
-      - name: Check code formatting
-        run: moon fmt --check
-      
-      - name: Lint code
-        run: moon check
-      
-      - name: Build project
-        run: moon build
-      
-      - name: Run tests
-        run: moon test
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Validate library, generator, and both examples
+        env:
+          MOONBIT_TEST_TARGET: ${{ matrix.target }}
+        run: |
+          moon version --all
+          moon update
+          ./check.sh

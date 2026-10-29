@@ -1,40 +1,34 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "username/example"
 
-import(
-  "moonbit-community/debug"
-  "moonbit-community/debug/repr"
-)
+import {
+  "moonbit-community/debug",
+  "moonbit-community/debug/repr",
+}
 
 // Values
 
 // Errors
-type KeyNotFound
 
 // Types and methods
-type Lambda
-
-type Pair
-
-type Pos
-
 pub(all) struct PubAllPoint {
-  x : Int
-  y : Int
+  x : Int32
+  y : Int32
 }
+pub fn PubAllPoint::debug(Self) -> @repr.Repr
 pub impl @debug.Debug for PubAllPoint
 
 pub struct PubPoint {
-  x : Int
-  y : Int
+  x : Int32
+  y : Int32
 }
+pub fn PubPoint::debug(Self) -> @repr.Repr
 pub impl @debug.Debug for PubPoint
 
-type Stack[T]
+type Stack[T] derive(Default)
+pub fn[T : Default] Stack::default() -> Self[T]
 pub fn[T] Stack::push(Self[T], T) -> Unit
-pub impl[T : Default] Default for Stack[T]
 
 // Type aliases
 
 // Traits
-

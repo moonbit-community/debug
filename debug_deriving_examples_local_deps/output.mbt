@@ -1,7 +1,7 @@
 // generated file, do not edit
 ///|
 impl @debug.Debug for Pos with debug(self) {
-  let fields : Map[String, @repr.Repr] = {}
+  let fields : Map[String, @repr.Repr] = Map([])
   fields["x"] = @debug.debug(self.x)
   fields["y"] = @debug.debug(self.y)
   fields["z"] = @debug.debug(self.z)
@@ -10,19 +10,25 @@ impl @debug.Debug for Pos with debug(self) {
 
 ///|
 pub impl @debug.Debug for PubPoint with debug(self) {
-  let fields : Map[String, @repr.Repr] = {}
+  let fields : Map[String, @repr.Repr] = Map([])
   fields["x"] = @debug.debug(self.x)
   fields["y"] = @debug.debug(self.y)
   @repr.Repr::record(fields)
 }
 
 ///|
+pub extend PubPoint with @debug.Debug::{debug}
+
+///|
 pub impl @debug.Debug for PubAllPoint with debug(self) {
-  let fields : Map[String, @repr.Repr] = {}
+  let fields : Map[String, @repr.Repr] = Map([])
   fields["x"] = @debug.debug(self.x)
   fields["y"] = @debug.debug(self.y)
   @repr.Repr::record(fields)
 }
+
+///|
+pub extend PubAllPoint with @debug.Debug::{debug}
 
 ///|
 impl @debug.Debug for Lambda with debug(self) {
@@ -49,7 +55,7 @@ impl @debug.Debug for KeyNotFound with debug(self) {
 
 ///|
 impl[T : @debug.Debug] @debug.Debug for Stack[T] with debug(self) {
-  let fields : Map[String, @repr.Repr] = {}
+  let fields : Map[String, @repr.Repr] = Map([])
   fields["array"] = @debug.debug(self.array)
   fields["current"] = @debug.debug(self.current)
   @repr.Repr::record(fields)

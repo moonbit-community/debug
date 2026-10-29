@@ -1,5 +1,5 @@
 ///|
-pub impl Debug for Int with fn debug(self) {
+pub impl Debug for Int32 with fn debug(self) {
   Repr::int(self)
 }
 
@@ -21,7 +21,7 @@ pub impl Debug for UInt16 with fn debug(self) {
 }
 
 ///|
-pub impl Debug for UInt with fn debug(self) {
+pub impl Debug for UInt32 with fn debug(self) {
   Repr::opaque_("UInt", [Repr::literal(self.to_string())])
 }
 
@@ -64,7 +64,7 @@ pub impl Debug for String with fn debug(self) {
 
 ///|
 pub impl Debug for StringView with fn debug(self) {
-  Repr::opaque_("StringView", [Repr::string(self.to_string())])
+  Repr::opaque_("StringView", [Repr::string(self.to_owned())])
 }
 
 ///|
@@ -92,7 +92,7 @@ pub impl[T : Debug] Debug for Array[T] with fn debug(self) {
 ///|
 pub impl[T : Debug] Debug for ArrayView[T] with fn debug(self) {
   Repr::opaque_("ArrayView", [
-    Repr::array(self.to_array().map(fn(x) { debug(x) })),
+    Repr::array(self.to_owned().map(fn(x) { debug(x) })),
   ])
 }
 
@@ -101,7 +101,7 @@ pub impl[T : Debug] Debug for FixedArray[T] with fn debug(self) {
   // `FixedArray` can be viewed as `ArrayView` via slicing.
   let view : ArrayView[T] = self[:]
   Repr::opaque_("FixedArray", [
-    Repr::array(view.to_array().map(fn(x) { debug(x) })),
+    Repr::array(view.to_owned().map(fn(x) { debug(x) })),
   ])
 }
 
@@ -110,7 +110,7 @@ pub impl[T : Debug] Debug for ReadOnlyArray[T] with fn debug(self) {
   // `ReadOnlyArray` can be viewed as `ArrayView` via slicing.
   let view : ArrayView[T] = self[:]
   Repr::opaque_("ReadOnlyArray", [
-    Repr::array(view.to_array().map(fn(x) { debug(x) })),
+    Repr::array(view.to_owned().map(fn(x) { debug(x) })),
   ])
 }
 
@@ -187,7 +187,7 @@ pub impl[A, B] Debug for Iter2[A, B] with fn debug(_) {
 pub impl[T : Debug] Debug for MutArrayView[T] with fn debug(self) {
   // Snapshot through an owned array to avoid aliasing surprises.
   Repr::opaque_("MutArrayView", [
-    Repr::array(self[:].to_array().map(fn(x) { debug(x) })),
+    Repr::array(self[:].to_owned().map(fn(x) { debug(x) })),
   ])
 }
 
@@ -1186,73 +1186,76 @@ test "core data structures Debug implementations" {
     pretty_print(sv, compact_threshold=100, use_ansi=false),
     content="<StringView: \"abc\">",
   )
-  let av : ArrayView[Int] = [1, 2, 3][1:3]
+  let av : ArrayView[Int32] = [1, 2, 3][1:3]
   inspect(
     pretty_print(av, compact_threshold=100, use_ansi=false),
     content="<ArrayView: [2, 3]>",
   )
-  let fa : FixedArray[Int] = [1, 2, 3]
+  let fa : FixedArray[Int32] = [1, 2, 3]
   inspect(
     pretty_print(fa, compact_threshold=100, use_ansi=false),
     content="<FixedArray: [1, 2, 3]>",
   )
-  let ro : ReadOnlyArray[Int] = [1, 2, 3]
+  let ro : ReadOnlyArray[Int32] = [1, 2, 3]
   inspect(
     pretty_print(ro, compact_threshold=100, use_ansi=false),
     content="<ReadOnlyArray: [1, 2, 3]>",
   )
-  let lst : @list.List[Int] = @list.from_array([1, 2, 3])
+  let lst : @list.List[Int32] = @list.List([1, 2, 3])
   inspect(
     pretty_print(lst, compact_threshold=100, use_ansi=false),
     content="<List: [1, 2, 3]>",
   )
-  let hm : @hashmap.HashMap[Int, String] = @hashmap.from_array([(2, "b")])
+  let hm : @hashmap.HashMap[Int32, String] = @hashmap.from_array([(2, "b")])
   inspect(
     pretty_print(hm, compact_threshold=100, use_ansi=false),
     content=(
       #|<HashMap: { 2: "b" }>
     ),
   )
-  let hs : @hashset.HashSet[Int] = @hashset.from_array([1])
+  let hs : @hashset.HashSet[Int32] = @hashset.from_array([1])
   inspect(
     pretty_print(hs, compact_threshold=100, use_ansi=false),
     content="<HashSet: [1]>",
   )
-  let dq : @deque.Deque[Int] = @deque.from_array([1, 2, 3])
+  let dq : @deque.Deque[Int32] = @deque.from_array([1, 2, 3])
   inspect(
     pretty_print(dq, compact_threshold=100, use_ansi=false),
     content="<Deque: [1, 2, 3]>",
   )
-  let q : @queue.Queue[Int] = @queue.from_array([1, 2, 3])
+  let q : @queue.Queue[Int32] = @queue.from_array([1, 2, 3])
   inspect(
     pretty_print(q, compact_threshold=100, use_ansi=false),
     content="<Queue: [1, 2, 3]>",
   )
-  let pq : @priority_queue.PriorityQueue[Int] = @priority_queue.from_array([
+  let pq : @priority_queue.PriorityQueue[Int32] = @priority_queue.from_array([
     3, 1, 2,
   ])
   inspect(
     pretty_print(pq, compact_threshold=100, use_ansi=false),
     content="<PriorityQueue: [3, 2, 1]>",
   )
-  let buf = @buffer.new()
+  let buf = Buffer()
   buf.write_bytes(b"ab")
   inspect(
     pretty_print(buf, compact_threshold=100, use_ansi=false),
     content="<Buffer: <Bytes: [0x61, 0x62]>>",
   )
-  let r : Ref[Int] = @ref.new(1)
+  let r : Ref[Int32] = Ref(1)
   inspect(
     pretty_print(r, compact_threshold=100, use_ansi=false),
     content="<Ref: 1>",
   )
-  let mv : MutArrayView[Int] = [1, 2, 3].mut_view(start=1, end=3)
+  let mv : MutArrayView[Int32] = [1, 2, 3].mut_view(start=1, end=3)
   inspect(
     pretty_print(mv, compact_threshold=100, use_ansi=false),
     content="<MutArrayView: [2, 3]>",
   )
-  inspect(pretty_print((Ok(1) : Result[Int, String])), content="Ok(1)")
-  inspect(pretty_print((Err("e") : Result[Int, String])), content="Err(\"e\")")
+  inspect(pretty_print((Ok(1) : Result[Int32, String])), content="Ok(1)")
+  inspect(
+    pretty_print((Err("e") : Result[Int32, String])),
+    content="Err(\"e\")",
+  )
 }
 
 ///|

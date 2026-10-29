@@ -1,7 +1,7 @@
 ///|
 /// Small demo binary for `pretty_print` and `pretty_print_diff`.
 pub fn demo_output() -> (String, String) {
-  let items : Array[(String, Int)] = [("a", 3), ("b", 6), ("c", 13)]
+  let items : Array[(String, Int32)] = [("a", 3), ("b", 6), ("c", 13)]
   let x = Map::from_array(items[:])
   let y = Map::from_array((items + [("b", 9)])[:])
   (@lib.pretty_print(x), @lib.pretty_print_diff(x, y))

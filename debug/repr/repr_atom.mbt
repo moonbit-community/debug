@@ -9,7 +9,7 @@ pub fn Repr::int16(x : Int16) -> Repr {
 
 ///|
 /// Construct a `Fixnum` leaf from an Int.
-pub fn Repr::int(x : Int) -> Repr {
+pub fn Repr::int(x : Int32) -> Repr {
   Fixnum(x.to_string())
 }
 
@@ -27,7 +27,7 @@ pub fn Repr::uint16(x : UInt16) -> Repr {
 
 ///|
 /// Construct a `Fixnum` leaf from a UInt.
-pub fn Repr::uint(x : UInt) -> Repr {
+pub fn Repr::uint(x : UInt32) -> Repr {
   Fixnum(x.to_string() + "U")
 }
 

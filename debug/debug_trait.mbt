@@ -28,8 +28,8 @@ pub fn[T : Debug] debug(x : T) -> @repr.Repr {
 /// - `use_ansi?`: whether to emit ANSI color escape codes. Defaults to `true` when `None`.
 pub fn[T : Debug] pretty_print(
   x : T,
-  max_depth? : Int,
-  compact_threshold? : Int,
+  max_depth? : Int32,
+  compact_threshold? : Int32,
   use_ansi? : Bool,
 ) -> String {
   @pp.pretty_print_repr(debug(x), max_depth?, compact_threshold?, use_ansi?)
@@ -62,8 +62,8 @@ pub fn[T : Debug] diff(
 pub fn[T : Debug] pretty_print_diff(
   x : T,
   y : T,
-  max_depth? : Int,
-  compact_threshold? : Int,
+  max_depth? : Int32,
+  compact_threshold? : Int32,
   use_ansi? : Bool,
   max_relative_error? : Double,
 ) -> String {

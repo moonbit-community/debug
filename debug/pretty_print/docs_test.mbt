@@ -5,8 +5,8 @@ enum Tag {
 
 ///|
 struct Example {
-  answer : Int
-  xs : Array[Int]
+  answer : Int32
+  xs : Array[Int32]
   tag : Tag
 }
 
@@ -37,7 +37,11 @@ test "Nested List" {
   }
 
   inspect(
-    pretty_print_repr(repeat(10).debug(), max_depth=100, compact_threshold=100),
+    @pretty_print.pretty_print_repr(
+      repeat(10).debug(),
+      max_depth=100,
+      compact_threshold=100,
+    ),
     content=(
       #|Cons(
       #|  { answer: 1, xs: [1, 2, 3], tag: Ok("test string result") },
@@ -70,7 +74,11 @@ test "Nested List" {
     ),
   )
   inspect(
-    pretty_print_repr(repeat(10).debug(), max_depth=100, compact_threshold=10),
+    @pretty_print.pretty_print_repr(
+      repeat(10).debug(),
+      max_depth=100,
+      compact_threshold=10,
+    ),
     content=(
       #|Cons(
       #|  {
@@ -168,7 +176,7 @@ test "docs: custom type pretty_print" {
   let sample : Example = { answer: 42, xs: [1, 2, 3], tag: Ok("done"), }
   let r = example_repr(sample)
   inspect(
-    pretty_print_repr(r, compact_threshold=100, use_ansi=false),
+    @pretty_print.pretty_print_repr(r, compact_threshold=100, use_ansi=false),
     content=(
       #|{ answer: 42, xs: [1, 2, 3], tag: Ok("done") }
     ),
@@ -177,10 +185,10 @@ test "docs: custom type pretty_print" {
 
 ///|
 struct WeirdKeys {
-  snake_case_ok : Int
-  with_space : Int
-  k_dash_v : Int
-  camel_case : Int
+  snake_case_ok : Int32
+  with_space : Int32
+  k_dash_v : Int32
+  camel_case : Int32
 }
 
 ///|
@@ -203,7 +211,7 @@ test "docs: record keys are quoted when needed" {
   }
   let r = weird_keys_repr(sample)
   inspect(
-    pretty_print_repr(r, compact_threshold=100, use_ansi=false),
+    @pretty_print.pretty_print_repr(r, compact_threshold=100, use_ansi=false),
     content=(
       #|{ snake_case_ok: 1, "with space": 2, "k-v": 3, "CamelCase": 4 }
     ),
@@ -212,7 +220,7 @@ test "docs: record keys are quoted when needed" {
 
 ///|
 struct Numbers {
-  xs : Array[Int]
+  xs : Array[Int32]
 }
 
 ///|
@@ -224,8 +232,12 @@ fn numbers_repr(value : Numbers) -> @repr.Repr {
 test "docs: threshold controls single-line vs multi-line" {
   let sample : Numbers = { xs: [1, 2, 3], }
   let r = numbers_repr(sample)
-  let compact = pretty_print_repr(r)
-  let expanded = pretty_print_repr(r, compact_threshold=0, use_ansi=false)
+  let compact = @pretty_print.pretty_print_repr(r)
+  let expanded = @pretty_print.pretty_print_repr(
+    r,
+    compact_threshold=0,
+    use_ansi=false,
+  )
   inspect(compact, content="[1, 2, 3]")
   inspect(
     expanded,
@@ -246,7 +258,7 @@ test "docs: nested arrays expand with trailing commas" {
     @repr.Repr::array([@repr.Repr::int(3)]),
   ])
   inspect(
-    pretty_print_repr(r, compact_threshold=0, use_ansi=false),
+    @pretty_print.pretty_print_repr(r, compact_threshold=0, use_ansi=false),
     content=(
       #|[
       #|  [
@@ -270,7 +282,7 @@ test "docs: record containing arrays expands" {
     "ys": @repr.Repr::array([]),
   })
   inspect(
-    pretty_print_repr(r, compact_threshold=0, use_ansi=false),
+    @pretty_print.pretty_print_repr(r, compact_threshold=0, use_ansi=false),
     content=(
       #|{
       #|  xs: [
@@ -293,7 +305,7 @@ test "docs: nested record expands" {
     }),
   })
   inspect(
-    pretty_print_repr(r, compact_threshold=0, use_ansi=false),
+    @pretty_print.pretty_print_repr(r, compact_threshold=0, use_ansi=false),
     content=(
       #|{
       #|  outer: {
@@ -307,7 +319,7 @@ test "docs: nested record expands" {
 
 ///|
 enum Shape {
-  Point(x~ : Int, y~ : Int)
+  Point(x~ : Int32, y~ : Int32)
   Line(Shape, Shape)
 }
 
@@ -329,7 +341,7 @@ test "docs: labeled enum arguments are printed" {
   let sample : Shape = Line(Point(x=1, y=2), Point(x=3, y=4))
   let r = shape_repr(sample)
   inspect(
-    pretty_print_repr(r, compact_threshold=100, use_ansi=false),
+    @pretty_print.pretty_print_repr(r, compact_threshold=100, use_ansi=false),
     content="Line(Point(x=1, y=2), Point(x=3, y=4))",
   )
 }
@@ -342,7 +354,7 @@ test "docs: enums expand with trailing commas" {
     (None, @repr.Repr::literal("c")),
   ])
   inspect(
-    pretty_print_repr(r, compact_threshold=0, use_ansi=false),
+    @pretty_print.pretty_print_repr(r, compact_threshold=0, use_ansi=false),
     content=(
       #|Enum(
       #|  a,
@@ -365,7 +377,7 @@ test "docs: nested enums + arrays expand consistently" {
     ),
   ])
   inspect(
-    pretty_print_repr(r, compact_threshold=0, use_ansi=false),
+    @pretty_print.pretty_print_repr(r, compact_threshold=0, use_ansi=false),
     content=(
       #|Outer(
       #|  Inner(
@@ -382,7 +394,7 @@ test "docs: nested enums + arrays expand consistently" {
 
 ///|
 struct DictExample {
-  entries : Array[(String, Int)]
+  entries : Array[(String, Int32)]
 }
 
 ///|
@@ -400,7 +412,7 @@ test "docs: dict prints as k: v pairs" {
   let sample : DictExample = { entries: [("a", 1), ("b", 2)], }
   let r = dict_repr(sample)
   inspect(
-    pretty_print_repr(r, compact_threshold=100, use_ansi=false),
+    @pretty_print.pretty_print_repr(r, compact_threshold=100, use_ansi=false),
     content=(
       #|{ "a": 1, "b": 2 }
     ),
@@ -412,7 +424,7 @@ test "docs: dict expands with quoted keys + trailing commas" {
   let sample : DictExample = { entries: [("a", 1), ("b", 2)], }
   let r = dict_repr(sample)
   inspect(
-    pretty_print_repr(r, compact_threshold=0, use_ansi=false),
+    @pretty_print.pretty_print_repr(r, compact_threshold=0, use_ansi=false),
     content=(
       #|{
       #|  "a": 1,
@@ -425,7 +437,7 @@ test "docs: dict expands with quoted keys + trailing commas" {
 ///|
 struct OpaqueExample {
   label : String
-  xs : Array[Int]
+  xs : Array[Int32]
 }
 
 ///|
@@ -440,7 +452,7 @@ test "docs: opaque wrappers show tag and children" {
   let sample : OpaqueExample = { label: "Vec", xs: [1, 2], }
   let r = opaque_repr(sample)
   inspect(
-    pretty_print_repr(r, compact_threshold=100, use_ansi=false),
+    @pretty_print.pretty_print_repr(r, compact_threshold=100, use_ansi=false),
     content="<Vec: [1, 2]>",
   )
 }
@@ -459,19 +471,17 @@ fn float_repr(sample : FloatSample) -> @repr.Repr {
 test "docs: diff_repr can ignore tiny float changes" {
   let x = float_repr({ value: 1.0, })
   let y = float_repr({ value: 1.0 + 1.0e-13, })
-  inspect(
-    (
-      pretty_print_delta(
-        @diff.diff_repr(x, y, max_relative_error=0.0),
-        compact_threshold=100,
-        use_ansi=false,
-      ),
-      pretty_print_delta(
-        @diff.diff_repr(x, y, max_relative_error=1.0e-12),
-        compact_threshold=100,
-        use_ansi=false,
-      ),
+  let rendered = (
+    @pretty_print.pretty_print_delta(
+      @diff.diff_repr(x, y, max_relative_error=0.0),
+      compact_threshold=100,
+      use_ansi=false,
     ),
-    content="(-1 +1.0000000000001, 1)",
+    @pretty_print.pretty_print_delta(
+      @diff.diff_repr(x, y, max_relative_error=1.0e-12),
+      compact_threshold=100,
+      use_ansi=false,
+    ),
   )
+  inspect("(\{rendered.0}, \{rendered.1})", content="(-1 +1.0000000000001, 1)")
 }
